@@ -31,15 +31,7 @@ export class AprovacoesController {
   @Get()
   @UseGuards(JwtAuthGuard)
   listarTodas(@Request() req: RequestWithUser) {
-    const user = req.user;
-
-    // Gestor e Master veem tudo
-    if (user.cargo === 'gestor-master' || user.cargo === 'gestor') {
-      return this.aprovacoesService.listarTodas();
-    }
-
-    // Solicitante vê apenas o que a MATRÍCULA dele pediu
-    return this.aprovacoesService.listarTodas(user.matricula);
+    return this.aprovacoesService.listarTodas(req.user);
   }
 
   @Patch(':id/status')

@@ -29,17 +29,21 @@ export class AprovacoesService {
     return await this.aprovacoesRepository.save(novaAprovacao);
   }
 
-  async listarTodas(matriculaFiltro?: string) {
-    // Se houver filtro de matrícula (Visão do Solicitante), mostra tudo o que ele pediu (incluindo concluídas)
-    if (matriculaFiltro) {
-      return await this.aprovacoesRepository.find({
-        where: { matricula_solicitante: matriculaFiltro },
-      });
+  async listarTodas(user: ActiveUser) {
+    const query = this.aprovacoesRepository.createQueryBuilder('aprovacao');
+
+    if (user.cargo === 'solicitante') {
+      // Solicitante vê todas as suas próprias solicitações (histórico completo)
+      query.where('aprovacao.matricula_solicitante = :matricula', { matricula: user.matricula });
+    } else {
+      // Gestores e Gestores Master vêem:
+      // 1. Apenas o que ainda está Pendente para aprovação
+      // 2. OU o que eles mesmos solicitaram (histórico pessoal, caso um gestor também seja solicitante)
+      query.where('aprovacao.status = :status', { status: 'Pendente' })
+           .orWhere('aprovacao.matricula_solicitante = :matricula', { matricula: user.matricula });
     }
-    // Para a fila de aprovação (Gestores), mostrar apenas o que NÃO está concluído
-    return await this.aprovacoesRepository.find({
-      where: { status: Not('CONCLUIDA') }
-    });
+
+    return await query.orderBy('aprovacao.data_inserida', 'DESC').getMany();
   }
 
   async atualizarStatus(id: number, status: string, user: any) {

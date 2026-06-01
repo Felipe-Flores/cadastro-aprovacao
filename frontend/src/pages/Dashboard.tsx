@@ -188,13 +188,21 @@ export const Dashboard: React.FC = () => {
 
   const filteredAndSortedAprovacoes = useMemo(() => {
     return aprovacoes
-    .filter((item) => 
-      // Usamos o operador ?? "" para garantir que se o campo for nulo, vire uma string vazia e não quebre
-      (item.pon ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.empresa ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.status ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.dentro_time_slot ?? "").toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    .filter((item) => {
+      // Regra de Visibilidade: Gestores veem apenas o que está Pendente ou o que eles mesmos solicitaram
+      const isVisible = user?.cargo === 'solicitante' || 
+                        item.status === 'Pendente' || 
+                        item.matricula_solicitante === user?.matricula;
+      
+      if (!isVisible) return false;
+
+      return (
+        (item.pon ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (item.empresa ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (item.status ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (item.dentro_time_slot ?? "").toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    })
     .sort((a, b) => {
       if (!sortConfig) return 0;
       const { key, direction } = sortConfig;
@@ -202,7 +210,7 @@ export const Dashboard: React.FC = () => {
       if (a[key] > b[key]) return direction === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [aprovacoes, searchTerm, sortConfig]);
+  }, [aprovacoes, searchTerm, sortConfig, user]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
