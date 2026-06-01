@@ -304,17 +304,12 @@ export const Dashboard: React.FC = () => {
                 <span>Usuários</span>
               </button>
             )}
-            {user && ( // Renderiza este bloco apenas se 'user' não for null/undefined
             {user && (
               <div className="flex items-center gap-3 px-4 py-1.5 bg-slate-100 rounded-full">
-                <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center text-white text-xs  font-bold">
-                  {user.nome ? getInitials(user.nome) : '?'}
                 <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
                   {user?.nome ? getInitials(user.nome) : '?'}
                 </div>
                 <div className="hidden sm:block">
-                  <p className="text-sm uppercase font-bold text-slate-900 leading-none">{user.nome}</p>
-                  <p className="text-[10px] uppercase font-semibold text-slate-500 tracking-wider mt-1">{user.cargo}</p>
                   <p className="text-sm uppercase font-bold text-slate-900 leading-none">{user?.nome}</p>
                   <p className="text-[10px] uppercase font-semibold text-slate-500 tracking-wider mt-1">{user?.cargo}</p>
                 </div>
