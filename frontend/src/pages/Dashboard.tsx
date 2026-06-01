@@ -439,7 +439,7 @@ export const Dashboard: React.FC = () => {
                         <td className="px-6 py-4 text-right">
                           {item.status === 'Pendente' ? (
                             // Regra: Gestor só aprova se estiver dentro do slot ('Sim'). Master aprova qualquer uma.
-                            (user.cargo === 'gestor-master' || item.dentro_time_slot === 'Sim') ? (
+                            (user?.cargo === 'gestor-master' || item.dentro_time_slot === 'Sim') ? (
                               <div className="flex justify-end gap-3">
                                 <button
                                   onClick={(e) => {
