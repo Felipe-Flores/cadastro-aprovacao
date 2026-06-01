@@ -170,6 +170,14 @@ export const Dashboard: React.FC = () => {
 
   const handleCreateActivity = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validação de data futura
+    const today = new Date().toISOString().split('T')[0];
+    if (formData.data_execucao > today) {
+      showToast('A data de execução não pode ser uma data futura.', 'error');
+      return;
+    }
+
     setIsSaving(true);
     try {
       await api.post('/aprovacoes', formData);
@@ -476,6 +484,7 @@ export const Dashboard: React.FC = () => {
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Data Execução</label>
                   <input 
                     type="date" required
+                    max={new Date().toISOString().split('T')[0]}
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                     value={formData.data_execucao} onChange={(e) => setFormData({...formData, data_execucao: e.target.value})}
                   />

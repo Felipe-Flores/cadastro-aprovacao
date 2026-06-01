@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not } from 'typeorm';
 import { Aprovacao } from './aprovacao.entity';
@@ -20,6 +20,12 @@ export class AprovacoesService {
   ) {}
 
   async criar(dados: CreateAprovacaoDto, usuarioLogado: ActiveUser) {
+    // Validação de data futura no servidor
+    const hoje = new Date().toISOString().split('T')[0];
+    if (dados.data_execucao > hoje) {
+      throw new BadRequestException('A data de execução não pode ser uma data futura.');
+    }
+
     const novaAprovacao = this.aprovacoesRepository.create(dados);
     
     novaAprovacao.matricula_solicitante = usuarioLogado.matricula;
