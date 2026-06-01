@@ -11,13 +11,15 @@ export class AuthService {
   ) {}
 
   async login(matricula: string, senhaPassada: string) {
+    console.log(`[AUTH] Tentativa de login para matrícula: ${matricula}`);
     const user = await this.usersService.findByMatricula(matricula.trim());
 
     if (!user) {
-      console.log(`[AUTH] Login falhou: Usuário ${matricula} não encontrado no banco.`);
+      console.log(`[AUTH] Resultado: Usuário ${matricula} NÃO encontrado no banco Neon.`);
       throw new UnauthorizedException('Matrícula ou senha incorretos');
     }
 
+    console.log(`[AUTH] Usuário encontrado: ${user.nome}. Validando senha...`);
     const senhaValida = await bcrypt.compare(senhaPassada, user.senha);
 
     if (!senhaValida) {
