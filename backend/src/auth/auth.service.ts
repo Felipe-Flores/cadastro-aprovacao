@@ -14,12 +14,14 @@ export class AuthService {
     const user = await this.usersService.findByMatricula(matricula.trim());
 
     if (!user) {
+      console.log(`[AUTH] Login falhou: Usuário ${matricula} não encontrado no banco.`);
       throw new UnauthorizedException('Matrícula ou senha incorretos');
     }
 
     const senhaValida = await bcrypt.compare(senhaPassada, user.senha);
 
     if (!senhaValida) {
+      console.log(`[AUTH] Login falhou: Senha incorreta para o usuário ${matricula}.`);
       throw new UnauthorizedException('Matrícula ou senha incorretos');
     }
 
