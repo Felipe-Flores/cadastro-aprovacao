@@ -295,7 +295,7 @@ export const Dashboard: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-6">
-            {user && user.cargo === 'gestor-master' && (
+            {user?.cargo === 'gestor-master' && (
               <button 
                 onClick={() => navigate('/usuarios')}
                 className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors font-medium text-sm border-r border-slate-200 pr-6"
@@ -307,11 +307,11 @@ export const Dashboard: React.FC = () => {
             {user && (
               <div className="flex items-center gap-3 px-4 py-1.5 bg-slate-100 rounded-full">
                 <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                  {user.nome ? getInitials(user.nome) : '?'}
+                  {user?.nome ? getInitials(user.nome) : '?'}
                 </div>
                 <div className="hidden sm:block">
-                  <p className="text-sm uppercase font-bold text-slate-900 leading-none">{user.nome}</p>
-                  <p className="text-[10px] uppercase font-semibold text-slate-500 tracking-wider mt-1">{user.cargo}</p>
+                  <p className="text-sm uppercase font-bold text-slate-900 leading-none">{user?.nome}</p>
+                  <p className="text-[10px] uppercase font-semibold text-slate-500 tracking-wider mt-1">{user?.cargo}</p>
                 </div>
               </div>
             )}
@@ -437,11 +437,11 @@ export const Dashboard: React.FC = () => {
                           {item.status}
                         </div>
                       </td>
-                      {user && (user.cargo === 'gestor-master' || user.cargo === 'gestor') && (
+                      {(user?.cargo === 'gestor-master' || user?.cargo === 'gestor') && (
                         <td className="px-6 py-4 text-right">
                           {item.status === 'Pendente' ? (
                             // Regra: Gestor só aprova se estiver dentro do slot ('Sim'). Master aprova qualquer uma.
-                            (user.cargo === 'gestor-master' || item.dentro_time_slot === 'Sim') ? (
+                            (user?.cargo === 'gestor-master' || item.dentro_time_slot === 'Sim') ? (
                               <div className="flex justify-end gap-3">
                                 <button
                                   onClick={(e) => {

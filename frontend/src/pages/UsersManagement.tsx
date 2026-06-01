@@ -205,8 +205,8 @@ export const UsersManagement: React.FC = () => {
           <div className="flex items-center gap-6">
             {user && (
               <div className="hidden sm:block text-right">
-                <p className="text-sm font-bold text-slate-900 leading-none">{user.nome}</p>
-                <p className="text-[10px] uppercase font-semibold text-slate-500 tracking-wider mt-1">{user.cargo}</p>
+                <p className="text-sm font-bold text-slate-900 leading-none">{user?.nome}</p>
+                <p className="text-[10px] uppercase font-semibold text-slate-500 tracking-wider mt-1">{user?.cargo}</p>
               </div>
             )}
             <button 
