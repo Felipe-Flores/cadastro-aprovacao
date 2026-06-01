@@ -1,0 +1,15 @@
+# Dependências
+node_modules/
+
+# Compilação e Logs
+dist/
+build/
+*.log
+npm-debug.log*
+
+# Variáveis de ambiente (Segurança!)
+.env
+.env.local
+
+# IDEs
+.vscode/

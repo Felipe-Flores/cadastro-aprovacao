@@ -1,0 +1,639 @@
+import React, { useEffect, useState, useContext, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../contexts/AuthContext';
+import api from '../api/api';
+import * as XLSX from 'xlsx';
+import { 
+  LogOut, 
+  LayoutDashboard, 
+  ClipboardList, 
+  CheckCircle2, 
+  XCircle, 
+  Clock,
+  User as UserIcon,
+  Plus,
+  X,
+  Users,
+  AlertTriangle,
+  Loader2,
+  Search,
+  ArrowUpDown,
+  Check,
+  AlertCircle,
+  Download,
+  FileSpreadsheet,
+} from 'lucide-react';
+
+interface Aprovacao {
+  id: number;
+  pon: string;
+  atividade: string;
+  data_execucao: string;
+  nome_solicitante: string;
+  matricula_solicitante: string;
+  dentro_time_slot: string;
+  empresa: string;
+  matricula_tecnico: string;
+  tecnico: string;
+  time_slot: string;
+  motivo: string;
+  observacao?: string;
+  status: 'Pendente' | 'Aprovado' | 'Reprovado';
+  data_inserida: string;
+  data_modificacao: string;
+}
+
+export const Dashboard: React.FC = () => {
+  const { user, logout } = useContext(AuthContext);
+  const [aprovacoes, setAprovacoes] = useState<Aprovacao[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const navigate = useNavigate();
+
+  // Estados para o Modal e Formuário
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Estados para Filtros e Ordenação
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Aprovacao; direction: 'asc' | 'desc' } | null>(null);
+
+  // Estado para o Toast (Notificação)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  
+  // Estados para o Modal de Confirmação de Reprovação
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [itemToReject, setItemToReject] = useState<number | null>(null);
+
+  const [formData, setFormData] = useState({
+    pon: '',
+    atividade: '',
+    dentro_time_slot: 'Sim',
+    matricula_tecnico: '',
+    tecnico: '',
+    time_slot: '',
+    motivo: '',
+    observacao: '',
+    data_execucao: ''
+  });
+
+  const resetForm = () => {
+    setFormData({
+      pon: '',
+      atividade: '',
+      dentro_time_slot: 'Sim',
+      matricula_tecnico: '',
+      tecnico: '',
+      time_slot: '',
+      motivo: '',
+      observacao: '',
+      data_execucao: ''
+    });
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    resetForm();
+  };
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const getInitials = (name: string) => {
+    if (!name) return '?';
+    const names = name.trim().split(' ');
+    return names.length >= 2 
+      ? (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase()
+      : names[0].charAt(0).toUpperCase();
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const [year, month, day] = dateString.split('-');
+    return `${day}/${month}/${year}`;
+  };
+
+  const handleSort = (key: keyof Aprovacao) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const handleStatusUpdate = async (id: number, newStatus: string) => {
+    try {
+      await api.patch(`/aprovacoes/${id}/status`, { status: newStatus });
+      // Atualiza o estado local para refletir a mudança instantaneamente na tela
+      setAprovacoes((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, status: newStatus as any } : item))
+      );
+      showToast(`Atividade ${newStatus === 'Aprovado' ? 'aprovada' : 'reprovada'} com sucesso!`, 'success');
+    } catch (error) {
+      console.error('Erro ao atualizar status', error);
+      showToast('Erro ao atualizar status.', 'error');
+    }
+  };
+
+  const exportToExcel = () => {
+    const dataToExport = filteredAndSortedAprovacoes.map(item => ({
+      ID: item.id,
+      PON: item.pon,
+      'Atividade (OS)': item.atividade,
+      'Data Execução': formatDate(item.data_execucao),
+      'Nome Solicitante': item.nome_solicitante,
+      'Matrícula Solicitante': item.matricula_solicitante,
+      Empresa: item.empresa,
+      'Nome Técnico': item.tecnico,
+      'Matrícula Técnico': item.matricula_tecnico,
+      'Time Slot': item.time_slot,
+      'Dentro do Slot': item.dentro_time_slot,
+      'Motivo da Solicitação': item.motivo,
+      Observação: item.observacao || '',
+      Status: item.status,
+      'Criado em': item.data_inserida ? new Date(item.data_inserida).toLocaleString('pt-BR') : '',
+      'Última Modificação': item.data_modificacao ? new Date(item.data_modificacao).toLocaleString('pt-BR') : ''
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Aprovações");
+    XLSX.writeFile(wb, `Relatorio_Aprovacoes_${new Date().toLocaleDateString()}.xlsx`);
+    showToast('Excel gerado com sucesso!', 'success');
+  };
+
+  const handleCreateActivity = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      await api.post('/aprovacoes', formData);
+      closeModal();
+      showToast('Atividade cadastrada com sucesso!', 'success');
+      // Recarrega a lista
+      const response = await api.get('/aprovacoes');
+      setAprovacoes(response.data);
+    } catch (error) {
+      console.error('Erro ao criar atividade', error);
+      showToast('Erro ao salvar atividade.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const filteredAndSortedAprovacoes = useMemo(() => {
+    return aprovacoes
+    .filter((item) => 
+      // Usamos o operador ?? "" para garantir que se o campo for nulo, vire uma string vazia e não quebre
+      (item.pon ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.empresa ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.status ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.dentro_time_slot ?? "").toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (!sortConfig) return 0;
+      const { key, direction } = sortConfig;
+      if (a[key] < b[key]) return direction === 'asc' ? -1 : 1;
+      if (a[key] > b[key]) return direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [aprovacoes, searchTerm, sortConfig]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (isModalOpen) closeModal();
+        if (isRejectModalOpen) {
+          setIsRejectModalOpen(false);
+          setItemToReject(null);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isModalOpen, isRejectModalOpen]);
+
+  useEffect(() => {
+    // Se não houver usuário logado (token expirou ou não existe), volta para o login
+    if (!localStorage.getItem('access_token')) {
+      navigate('/login');
+      return;
+    }
+
+    const fetchAprovacoes = async () => {
+      try {
+        const response = await api.get('/aprovacoes');
+        setAprovacoes(response.data);
+      } catch (error) {
+        console.error('Erro ao buscar aprovações', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAprovacoes();
+  }, [navigate]);
+
+  const getStatusStyle = (status: string) => {
+    switch (status) {
+      case 'Aprovado':
+        return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+      case 'Reprovado':
+        return 'bg-red-50 text-red-700 border-red-100';
+      default:
+        return 'bg-amber-50 text-amber-700 border-amber-100';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'Aprovado': return <CheckCircle2 size={16} />;
+      case 'Reprovado': return <XCircle size={16} />;
+      default: return <Clock size={16} />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      {/* Navbar Superior */}
+      <nav className="bg-white border-b border-slate-200 px-6 py-4 shadow-sm">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-2 text-indigo-600">
+            <LayoutDashboard size={24} strokeWidth={2.5} />
+            <span className="text-xl font-bold text-slate-900 tracking-tight">Portal de Aprovação</span>
+          </div>
+          
+          <div className="flex items-center gap-6">
+            {user?.cargo === 'gestor-master' && (
+              <button 
+                onClick={() => navigate('/usuarios')}
+                className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors font-medium text-sm border-r border-slate-200 pr-6"
+              >
+                <Users size={18} />
+                <span>Usuários</span>
+              </button>
+            )}
+            <div className="flex items-center gap-3 px-4 py-1.5 bg-slate-100 rounded-full">
+              <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center text-white text-xs  font-bold">
+                {user?.nome ? getInitials(user.nome) : '?'}
+              </div>
+              <div className="hidden sm:block">
+                <p className="text-sm uppercase font-bold text-slate-900 leading-none">{user?.nome}</p>
+                <p className="text-[10px] uppercase font-semibold text-slate-500 tracking-wider mt-1">{user?.cargo}</p>
+              </div>
+            </div>
+            
+            <button 
+              onClick={handleLogout}
+              className="flex items-center gap-2 text-slate-500 hover:text-red-600 transition-colors font-medium text-sm"
+            >
+              <LogOut size={18} />
+              <span className="hidden sm:inline">Sair</span>
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Conteúdo Principal */}
+      <main className="flex-1 max-w-7xl w-full mx-auto p-6">
+        <div className="flex flex-col gap-6">
+          {/* Barra de Busca e Título */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input 
+                type="text"
+                placeholder="Buscar por PON, Empresa ou Status..."
+                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-2">
+              <div className="flex bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
+                <button 
+                  onClick={exportToExcel}
+                  className="p-2 text-slate-500 hover:text-emerald-600 transition-colors"
+                  title="Exportar para Excel"
+                >
+                  <FileSpreadsheet size={20} />
+                </button>
+              </div>
+              <button 
+                onClick={() => setIsModalOpen(true)}
+                className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-100"
+              >
+                <Plus size={18} />
+                Nova Atividade
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+              <ClipboardList className="text-indigo-500" />
+              Lista de Atividades
+            </h2>
+            <div className="flex items-center gap-4">
+              <span className="hidden md:inline px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-500 shadow-sm">
+                Encontrados: {filteredAndSortedAprovacoes.length}
+              </span>
+            </div>
+          </div>
+
+          {/* Tabela */}
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-slate-50 border-b border-slate-200">
+                  <tr>
+                    {[
+                      { label: 'PON', key: 'pon' },
+                      { label: 'Atividade', key: 'atividade' },
+                      { label: 'Solicitante', key: 'nome_solicitante' },
+                      { label: 'Empresa', key: 'empresa' },
+                      { label: 'Data Execução', key: 'data_execucao' },
+                      { label: 'Dentro Slot', key: 'dentro_time_slot', align: 'center' },
+                      { label: 'Status', key: 'status', align: 'center' }
+                    ].map((col) => (
+                      <th 
+                        key={col.key}
+                        onClick={() => handleSort(col.key as keyof Aprovacao)}
+                        className={`px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors ${col.align === 'center' ? 'text-center' : ''}`}
+                      >
+                        <div className={`flex items-center gap-1 ${col.align === 'center' ? 'justify-center' : ''}`}>
+                          {col.label}
+                          <ArrowUpDown size={12} className={sortConfig?.key === col.key ? 'text-indigo-600' : 'text-slate-300'} />
+                        </div>
+                      </th>
+                    ))}
+                    {(user?.cargo === 'gestor-master' || user?.cargo === 'gestor') && (
+                      <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Ações</th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {loading ? (
+                    <tr><td colSpan={7} className="px-6 py-10 text-center text-slate-400">Carregando dados...</td></tr>
+                  ) : filteredAndSortedAprovacoes.length === 0 ? (
+                    <tr><td colSpan={7} className="px-6 py-10 text-center text-slate-400">Nenhum registro encontrado.</td></tr>
+                  ) : filteredAndSortedAprovacoes.map((item) => (
+                    <tr key={item.id} className="hover:bg-slate-100/50 even:bg-slate-50/50 transition-colors group">
+                      <td className="px-6 py-4 font-mono text-sm font-semibold text-indigo-600">{item.pon}</td>
+                      <td className="px-6 py-4">
+                        <p className="text-sm font-medium text-slate-700">{item.atividade}</p>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-600">{item.nome_solicitante}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600">{item.empresa}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600 font-medium">{formatDate(item.data_execucao)}</td>
+                      <td className="px-6 py-4 text-center">
+                        <span className={`text-xs font-bold ${item.dentro_time_slot === 'Sim' ? 'text-emerald-600' : 'text-red-600'}`}>
+                          {item.dentro_time_slot}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className={`mx-auto w-fit flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold ${getStatusStyle(item.status)}`}>
+                          {getStatusIcon(item.status)}
+                          {item.status}
+                        </div>
+                      </td>
+                      {(user?.cargo === 'gestor-master' || user?.cargo === 'gestor') && (
+                        <td className="px-6 py-4 text-right">
+                          {item.status === 'Pendente' ? (
+                            // Regra: Gestor só aprova se estiver dentro do slot ('Sim'). Master aprova qualquer uma.
+                            (user.cargo === 'gestor-master' || item.dentro_time_slot === 'Sim') ? (
+                              <div className="flex justify-end gap-3">
+                                <button
+                                  onClick={() => handleStatusUpdate(item.id, 'Aprovado')}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white rounded-lg transition-all border border-emerald-200 text-xs font-bold shadow-sm"
+                                >
+                                  <CheckCircle2 size={14} />
+                                  Aprovar
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setItemToReject(item.id);
+                                    setIsRejectModalOpen(true);
+                                  }}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-700 hover:bg-red-600 hover:text-white rounded-lg transition-all border border-red-200 text-xs font-bold shadow-sm"
+                                >
+                                  <XCircle size={14} />
+                                  Reprovar
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-slate-400 italic">Requer Master</span>
+                            )
+                          ) : (
+                            <span className="text-xs text-slate-400 italic">Concluído</span>
+                          )}
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Modal de Nova Atividade */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100">
+              <h3 className="text-xl font-bold text-slate-800">Cadastrar Nova Atividade</h3>
+              <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleCreateActivity} className="p-6 overflow-y-auto space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Número PON</label>
+                  <input 
+                    type="text" required placeholder="Pon: 8-PKd85"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                    value={formData.pon} onChange={(e) => setFormData({...formData, pon: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Data Execução</label>
+                  <input 
+                    type="date" required
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                    value={formData.data_execucao} onChange={(e) => setFormData({...formData, data_execucao: e.target.value})}
+                  />
+                </div>
+                <div className="md:col-span-2 space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Atividade</label>
+                  <input 
+                    type="text" required placeholder="Digite numero da atividade Ex: 18798549"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                    value={formData.atividade} onChange={(e) => setFormData({...formData, atividade: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Matrícula Técnico</label>
+                  <input 
+                    type="text" required placeholder="A80xxxx"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                    value={formData.matricula_tecnico} onChange={(e) => setFormData({...formData, matricula_tecnico: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Nome Técnico</label>
+                  <input 
+                    type="text" required placeholder="Nome completo"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                    value={formData.tecnico} onChange={(e) => setFormData({...formData, tecnico: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Time Slot</label>
+                  <select 
+                    required
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all appearance-none"
+                    value={formData.time_slot} 
+                    onChange={(e) => setFormData({...formData, time_slot: e.target.value})}
+                  >
+                    <option value="" disabled>Selecione o horário</option>
+                    <option value="08:30 as 10:30">08:30-10:30</option>
+                    <option value="10:30 as 12:00">10:30-12:00</option>
+                    <option value="14:00 as 16:00">14:00-16:00</option>
+                    <option value="16:00 as 18:00">16:00-18:00</option>
+                    <option value="SLA">SLA</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Atividade está Dentro do Slot?</label>
+                  <select 
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                    value={formData.dentro_time_slot} onChange={(e) => setFormData({...formData, dentro_time_slot: e.target.value})}
+                  >
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2 space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Motivo</label>
+                  <select 
+                    required
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all appearance-none"
+                    value={formData.motivo} 
+                    onChange={(e) => setFormData({...formData, motivo: e.target.value})}
+                  >
+                    <option value="" disabled>Selecione o motivo</option>
+                    <option value="Falta de Controle">Falta de Controle</option>
+                    <option value="Erro Sistemico">Erro Sistemico</option>
+                    <option value="Ordem Voltou para o Bucket">Ordem Voltou para o Bucket</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2 space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Observação (Opcional)</label>
+                  <textarea 
+                    rows={2}
+                    maxLength={255}
+                    placeholder="Descreva brevemente detalhes relevantes da atividade..."
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all resize-none"
+                    value={formData.observacao} 
+                    onChange={(e) => setFormData({...formData, observacao: e.target.value})}
+                  />
+                  <div className="text-[10px] text-right text-slate-400 mt-1 mr-1 font-medium">
+                    {formData.observacao.length} / 255 caracteres
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button 
+                  type="button" onClick={closeModal}
+                  className="flex-1 px-4 py-3 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit"
+                  disabled={isSaving}
+                  className="flex-1 px-4 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all flex items-center justify-center gap-2 disabled:bg-indigo-300 disabled:shadow-none"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    'Salvar Atividade'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Confirmação de Reprovação */}
+      {isRejectModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-in zoom-in-95 duration-200 border border-slate-100">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-4 border border-red-100">
+                <AlertTriangle size={30} />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900">Confirmar Reprovação</h3>
+              <p className="text-sm text-slate-500 mt-2">
+                Tem certeza que deseja <span className="font-bold text-red-600">reprovar</span> esta atividade? Esta ação não poderá ser desfeita.
+              </p>
+            </div>
+            
+            <div className="flex gap-3 mt-8">
+              <button 
+                onClick={() => {
+                  setIsRejectModalOpen(false);
+                  setItemToReject(null);
+                }}
+                className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all text-sm"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={() => {
+                  if(itemToReject) handleStatusUpdate(itemToReject, 'Reprovado');
+                  setIsRejectModalOpen(false);
+                  setItemToReject(null);
+                }}
+                className="flex-1 px-4 py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 shadow-lg shadow-red-100 transition-all text-sm"
+              >
+                Sim, Reprovar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sistema de Toast (Notificação) */}
+      {toast && (
+        <div className="fixed top-6 right-6 z-[100] animate-in fade-in slide-in-from-right-8 duration-300">
+          <div className={`flex items-center gap-3 px-5 py-4 rounded-2xl shadow-2xl border ${
+            toast.type === 'success' 
+              ? 'bg-white border-emerald-100 text-emerald-800' 
+              : 'bg-white border-red-100 text-red-800'
+          }`}>
+            {toast.type === 'success' ? (
+              <div className="bg-emerald-100 p-1 rounded-full text-emerald-600"><Check size={18} /></div>
+            ) : (
+              <div className="bg-red-100 p-1 rounded-full text-red-600"><AlertCircle size={18} /></div>
+            )}
+            <p className="text-sm font-bold">{toast.message}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
