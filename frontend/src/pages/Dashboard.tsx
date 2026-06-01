@@ -224,8 +224,12 @@ export const Dashboard: React.FC = () => {
       if (!sortConfig) return 0;
       const { key, direction } = sortConfig;
       
-      const valueA = (a[key as keyof typeof a] as any) ?? '';
-      const valueB = (b[key as keyof typeof b] as any) ?? '';
+      const valA = a[key];
+      const valB = b[key];
+
+      // Garantindo que a comparação seja feita como string ou número
+      const valueA = valA !== null && valA !== undefined ? valA : '';
+      const valueB = valB !== null && valB !== undefined ? valB : '';
 
       if (valueA < valueB) return direction === 'asc' ? -1 : 1;
       if (valueA > valueB) return direction === 'asc' ? 1 : -1;
