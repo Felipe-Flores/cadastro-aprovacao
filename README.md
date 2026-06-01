@@ -23,36 +23,46 @@ Este é um sistema Full Stack desenvolvido para gerenciar usuários e fluxos de 
 - **Controle de Acesso (RBAC)**: Níveis diferenciados para `Solicitante`, `Gestor` e `Gestor Master`.
 - **Gestão de Usuários**: CRUD completo com validação de senha (mínimo 4 caracteres).
 - **Padronização**: Conversão automática de Matrícula e Nome para letras maiúsculas.
+- **Fluxo de Visibilidade**: Atividades concluídas desaparecem da fila de aprovação dos gestores, permanecendo visíveis apenas para o solicitante.
 - **Interface**: Design limpo com feedbacks visuais via Toasts e modais de confirmação.
 
 ## 📦 Como rodar o projeto
 
 ### Pré-requisitos
-- **Node.js**: Versão 18 ou superior.
-- **PostgreSQL**: Instalado e em execução.
-- **Git**: Para clonar o repositório.
+- **Node.js**: Versão 18.x ou superior.
+- **PostgreSQL**: Banco de dados relacional instalado e rodando.
+- **Git**: Para clonagem e controle de versão.
+- **NPM**: Gerenciador de pacotes (instalado junto com o Node).
 
-### 1. Configuração do Banco de Dados
+### 🛠️ Passo a Passo para Instalação
+
+#### 1. Configuração do Banco de Dados
 1. Abra o seu gerenciador de banco de dados (ex: pgAdmin ou DBeaver).
-2. Crie um novo banco de dados chamado `aprovacao_db` (ou o nome que preferir).
+2. Crie um novo banco de dados chamado `aprovacao_app`.
 
-### 2. Configuração do Backend
+#### 2. Configuração do Backend
 1. Acesse a pasta `backend`.
-2. Instale as dependências do NestJS:
+2. Instale as dependências:
    ```bash
    npm install
    ```
-3. Crie um arquivo `.env` na raiz da pasta `/backend` e configure as chaves:
-   - `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_NAME`.
-   - `JWT_SECRET` (Uma string longa para segurança do token).
+3. Crie um arquivo `.env` na raiz da pasta `/backend` com as seguintes variáveis:
+   ```env
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_USERNAME=seu_usuario
+   DB_PASSWORD=sua_senha
+   DB_NAME=aprovacao_app
+   JWT_SECRET=sua_chave_secreta_aqui
+   ```
 4. Inicie o servidor:
    ```bash
    npm run start:dev
    ```
 
-### 3. Configuração do Frontend
+#### 3. Configuração do Frontend
 1. Acesse a pasta `frontend`.
-2. Instale as dependências do React/Vite:
+2. Instale as dependências:
    ```bash
    npm install
    ```

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not } from 'typeorm';
 import { Aprovacao } from './aprovacao.entity';
 import { CreateAprovacaoDto } from './dto/create-aprovacao.dto';
 
@@ -30,12 +30,16 @@ export class AprovacoesService {
   }
 
   async listarTodas(matriculaFiltro?: string) {
+    // Se houver filtro de matrícula (Visão do Solicitante), mostra tudo o que ele pediu (incluindo concluídas)
     if (matriculaFiltro) {
       return await this.aprovacoesRepository.find({
         where: { matricula_solicitante: matriculaFiltro },
       });
     }
-    return await this.aprovacoesRepository.find();
+    // Para a fila de aprovação (Gestores), mostrar apenas o que NÃO está concluído
+    return await this.aprovacoesRepository.find({
+      where: { status: Not('CONCLUIDA') }
+    });
   }
 
   async atualizarStatus(id: number, status: string, user: any) {
