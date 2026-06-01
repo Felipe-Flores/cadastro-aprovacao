@@ -223,10 +223,9 @@ export const Dashboard: React.FC = () => {
     .sort((a, b) => {
       if (!sortConfig) return 0;
       const { key, direction } = sortConfig;
-
-      // Garante que o TypeScript entenda que estamos acessando propriedades válidas
-      const valueA = a[key] ?? '';
-      const valueB = b[key] ?? '';
+      
+      const valueA = (a[key as keyof typeof a] as any) ?? '';
+      const valueB = (b[key as keyof typeof b] as any) ?? '';
 
       if (valueA < valueB) return direction === 'asc' ? -1 : 1;
       if (valueA > valueB) return direction === 'asc' ? 1 : -1;
@@ -300,7 +299,7 @@ export const Dashboard: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-6">
-            {user && user.cargo === 'gestor-master' && (
+            {user?.cargo === 'gestor-master' && (
               <button 
                 onClick={() => navigate('/usuarios')}
                 className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors font-medium text-sm border-r border-slate-200 pr-6"
@@ -312,11 +311,11 @@ export const Dashboard: React.FC = () => {
             {user && (
               <div className="flex items-center gap-3 px-4 py-1.5 bg-slate-100 rounded-full">
                 <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                  {getInitials(user.nome)}
+                  {getInitials(user?.nome)}
                 </div>
                 <div className="hidden sm:block">
-                  <p className="text-sm uppercase font-bold text-slate-900 leading-none">{user.nome}</p>
-                  <p className="text-[10px] uppercase font-semibold text-slate-500 tracking-wider mt-1">{user.cargo}</p>
+                  <p className="text-sm uppercase font-bold text-slate-900 leading-none">{user?.nome}</p>
+                  <p className="text-[10px] uppercase font-semibold text-slate-500 tracking-wider mt-1">{user?.cargo}</p>
                 </div>
               </div>
             )}
