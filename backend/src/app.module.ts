@@ -19,15 +19,17 @@ import { AuthModule } from './auth/auth.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.get<string>('DB_HOST'),
-        port: configService.get<number>('DB_PORT') || 5433,
-        username: configService.get<string>('DB_USERNAME'),
-        password: configService.get<string>('DB_PASSWORD'),
-        database: configService.get<string>('DB_DATABASE'),
+        url: configService.get<string>('DATABASE_URL'),
         autoLoadEntities: true,
         entities: [User, Aprovacao],
-        synchronize: true, // Cria as tabelas automaticamente (usar apenas em desenvolvimento)
+        synchronize: true,
         logging: true,
+        ssl: true,
+        extra: {
+          ssl: {
+            rejectUnauthorized: false,
+          },
+        },
       }),
     }),
     // Importa os módulos de negócio
