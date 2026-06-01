@@ -203,10 +203,12 @@ export const UsersManagement: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-6">
-            <div className="hidden sm:block text-right">
-              <p className="text-sm font-bold text-slate-900 leading-none">{user?.nome}</p>
-              <p className="text-[10px] uppercase font-semibold text-slate-500 tracking-wider mt-1">{user?.cargo}</p>
-            </div>
+            {user && (
+              <div className="hidden sm:block text-right">
+                <p className="text-sm font-bold text-slate-900 leading-none">{user.nome}</p>
+                <p className="text-[10px] uppercase font-semibold text-slate-500 tracking-wider mt-1">{user.cargo}</p>
+              </div>
+            )}
             <button 
               onClick={() => { logout(); navigate('/login'); }} 
               className="text-slate-500 hover:text-red-600 font-medium text-sm flex items-center gap-2 transition-colors"
