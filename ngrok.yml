@@ -1,0 +1,11 @@
+version: "3"
+agent:
+  authtoken: 3ESLi28KGwlvINKEAOJ1yMddTFs_5SDDcQVSGjdnbHsq6iV8H
+tunnels:
+  backend:
+    proto: http
+    addr: 3000
+  frontend:
+    proto: http
+    addr: 5173
+    host_header: rewrite

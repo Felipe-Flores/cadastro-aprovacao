@@ -53,6 +53,10 @@ export const Dashboard: React.FC = () => {
   // Estados para o Modal e Formuário
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Estados para o Modal de Detalhes
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [selectedAprovacao, setSelectedAprovacao] = useState<Aprovacao | null>(null);
+
   // Estados para Filtros e Ordenação
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: keyof Aprovacao; direction: 'asc' | 'desc' } | null>(null);
@@ -93,6 +97,11 @@ export const Dashboard: React.FC = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     resetForm();
+  };
+
+  const closeDetailsModal = () => {
+    setIsDetailsModalOpen(false);
+    setSelectedAprovacao(null);
   };
 
   const showToast = (message: string, type: 'success' | 'error') => {
@@ -224,6 +233,7 @@ export const Dashboard: React.FC = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         if (isModalOpen) closeModal();
+        if (isDetailsModalOpen) closeDetailsModal();
         if (isRejectModalOpen) {
           setIsRejectModalOpen(false);
           setItemToReject(null);
@@ -232,7 +242,7 @@ export const Dashboard: React.FC = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isModalOpen, isRejectModalOpen]);
+  }, [isModalOpen, isRejectModalOpen, isDetailsModalOpen]);
 
   useEffect(() => {
     // Se não houver usuário logado (token expirou ou não existe), volta para o login
@@ -399,7 +409,14 @@ export const Dashboard: React.FC = () => {
                   ) : filteredAndSortedAprovacoes.length === 0 ? (
                     <tr><td colSpan={7} className="px-6 py-10 text-center text-slate-400">Nenhum registro encontrado.</td></tr>
                   ) : filteredAndSortedAprovacoes.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-100/50 even:bg-slate-50/50 transition-colors group">
+                    <tr 
+                      key={item.id} 
+                      onClick={() => {
+                        setSelectedAprovacao(item);
+                        setIsDetailsModalOpen(true);
+                      }}
+                      className="hover:bg-slate-100/50 even:bg-slate-50/50 transition-colors group cursor-pointer"
+                    >
                       <td className="px-6 py-4 font-mono text-sm font-semibold text-indigo-600">{item.pon}</td>
                       <td className="px-6 py-4">
                         <p className="text-sm font-medium text-slate-700">{item.atividade}</p>
@@ -425,14 +442,18 @@ export const Dashboard: React.FC = () => {
                             (user.cargo === 'gestor-master' || item.dentro_time_slot === 'Sim') ? (
                               <div className="flex justify-end gap-3">
                                 <button
-                                  onClick={() => handleStatusUpdate(item.id, 'Aprovado')}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleStatusUpdate(item.id, 'Aprovado');
+                                  }}
                                   className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white rounded-lg transition-all border border-emerald-200 text-xs font-bold shadow-sm"
                                 >
                                   <CheckCircle2 size={14} />
                                   Aprovar
                                 </button>
                                 <button
-                                  onClick={() => {
+                                  onClick={(e) => {
+                                    e.stopPropagation();
                                     setItemToReject(item.id);
                                     setIsRejectModalOpen(true);
                                   }}
@@ -591,6 +612,138 @@ export const Dashboard: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Detalhes da Atividade */}
+      {isDetailsModalOpen && selectedAprovacao && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+              <div>
+                <h3 className="text-xl font-bold text-slate-800">Detalhes da Atividade</h3>
+                <p className="text-xs text-slate-500 font-mono mt-0.5">ID: #{selectedAprovacao.id}</p>
+              </div>
+              <button onClick={closeDetailsModal} className="text-slate-400 hover:text-slate-600 transition-colors p-1 hover:bg-white rounded-full">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Status e PON */}
+                <div className="flex flex-col gap-4">
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status Atual</span>
+                    <div className={`mt-2 w-fit flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold ${getStatusStyle(selectedAprovacao.status)}`}>
+                      {getStatusIcon(selectedAprovacao.status)}
+                      {selectedAprovacao.status}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1 px-1">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Número PON</p>
+                    <p className="text-lg font-mono font-bold text-indigo-600">{selectedAprovacao.pon}</p>
+                  </div>
+                  
+                  <div className="space-y-1 px-1">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Atividade (OS)</p>
+                    <p className="text-slate-700 font-medium">{selectedAprovacao.atividade}</p>
+                  </div>
+                </div>
+
+                {/* Datas e Slot */}
+                <div className="flex flex-col gap-4">
+                  <div className="space-y-1 px-1">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Data de Execução</p>
+                    <div className="flex items-center gap-2 text-slate-700">
+                      <Clock size={16} className="text-slate-400" />
+                      <span className="font-semibold">{formatDate(selectedAprovacao.data_execucao)}</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1 px-1">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Janela / Time Slot</p>
+                    <p className="text-slate-700">{selectedAprovacao.time_slot} <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded border ${selectedAprovacao.dentro_time_slot === 'Sim' ? 'text-emerald-600 border-emerald-100' : 'text-red-600 border-red-100'}`}>Slot: {selectedAprovacao.dentro_time_slot}</span></p>
+                  </div>
+
+                  <div className="space-y-1 px-1">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Motivo da Solicitação</p>
+                    <p className="text-slate-700">{selectedAprovacao.motivo}</p>
+                  </div>
+                </div>
+
+                {/* Informações de Pessoal */}
+                <div className="md:col-span-2 border-t border-slate-100 pt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-indigo-50/30 p-4 rounded-xl border border-indigo-100/50">
+                      <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-3">Solicitante</p>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 text-sm font-bold">
+                          {getInitials(selectedAprovacao.nome_solicitante)}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-800">{selectedAprovacao.nome_solicitante}</p>
+                          <p className="text-xs text-slate-500">{selectedAprovacao.empresa} • {selectedAprovacao.matricula_solicitante}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Técnico em Campo</p>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center text-slate-500">
+                          <UserIcon size={20} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-800">{selectedAprovacao.tecnico}</p>
+                          <p className="text-xs text-slate-500">Matrícula: {selectedAprovacao.matricula_tecnico}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Observações */}
+                <div className="md:col-span-2 space-y-2">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">Observações Adicionais</p>
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 min-h-[80px]">
+                    <p className="text-sm text-slate-600 italic">
+                      {selectedAprovacao.observacao || 'Nenhuma observação informada.'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Histórico de Registro */}
+                <div className="md:col-span-2 border-t border-slate-100 pt-6">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1 mb-3">Histórico de Registro</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1 px-1">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Criado em</p>
+                      <div className="flex items-center gap-2 text-slate-700">
+                        <span className="font-semibold">{selectedAprovacao.data_inserida ? new Date(selectedAprovacao.data_inserida).toLocaleString('pt-BR') : 'N/A'}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-1 px-1">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Última Modificação</p>
+                      <div className="flex items-center gap-2 text-slate-700">
+                        <span className="font-semibold">{selectedAprovacao.data_modificacao ? new Date(selectedAprovacao.data_modificacao).toLocaleString('pt-BR') : 'N/A'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+              <button 
+                onClick={closeDetailsModal}
+                className="px-6 py-2 bg-white border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-100 transition-all text-sm"
+              >
+                Fechar
+              </button>
+            </div>
           </div>
         </div>
       )}

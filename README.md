@@ -72,3 +72,34 @@ Este é um sistema Full Stack desenvolvido para gerenciar usuários e fluxos de 
    ```
 
 A aplicação estará disponível em `http://localhost:5173` e o servidor em `http://localhost:3000`.
+
+## 🚀 Deploy Gratuito (Passo a Passo)
+
+### 1. Banco de Dados (Neon.tech)
+1. Crie uma conta no Neon.tech.
+2. Crie um projeto chamado `aprovacao-app`.
+3. Copie a **Connection String** (se parece com `postgres://user:password@host/neondb`).
+
+### 2. Backend (Render.com)
+1. Crie uma conta no Render e conecte seu GitHub.
+2. Clique em **New > Web Service**.
+3. Selecione o repositório do projeto.
+4. **Root Directory**: `backend`
+5. **Build Command**: `npm install && npm run build`
+6. **Start Command**: `node dist/main`
+7. Em **Environment Variables**, adicione:
+   - `DATABASE_URL`: (A string que você copiou do Neon)
+   - `JWT_SECRET`: (Sua chave secreta)
+   - `PORT`: `3000`
+
+### 3. Frontend (Vercel)
+1. Crie uma conta na Vercel.
+2. Importe o seu repositório do GitHub.
+3. **Framework Preset**: Vite.
+4. **Root Directory**: `frontend`
+5. Em **Environment Variables**, adicione:
+   - `VITE_API_URL`: (A URL que o Render gerou para o seu Backend).
+6. Clique em **Deploy**.
+
+---
+Desenvolvido por Felipe.
