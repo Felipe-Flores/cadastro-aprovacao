@@ -402,7 +402,6 @@ export const Dashboard: React.FC = () => {
                       { label: 'Cidade', key: 'cidade' },
                       { label: 'PON', key: 'pon' },
                       { label: 'Atividade', key: 'atividade' },
-                      { label: 'UF', key: 'uf', align: 'center' },
                       { label: 'Solicitante', key: 'nome_solicitante' },
                       { label: 'Empresa', key: 'empresa' },
                       { label: 'Data Execução', key: 'data_execucao' },
@@ -421,15 +420,15 @@ export const Dashboard: React.FC = () => {
                       </th>
                     ))}
                     {(user?.cargo === 'gestor-master' || user?.cargo === 'gestor') && (
-                      <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Ações</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase align-center tracking-wider text-right">Ações</th>
                     )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {loading ? (
-                    <tr><td colSpan={10} className="px-6 py-10 text-center text-slate-400">Carregando dados...</td></tr>
+                    <tr><td colSpan={9} className="px-6 py-10 text-center text-slate-400">Carregando dados...</td></tr>
                   ) : filteredAndSortedAprovacoes.length === 0 ? (
-                    <tr><td colSpan={10} className="px-6 py-10 text-center text-slate-400">Nenhum registro encontrado.</td></tr>
+                    <tr><td colSpan={9} className="px-6 py-10 text-center text-slate-400">Nenhum registro encontrado.</td></tr>
                   ) : filteredAndSortedAprovacoes.map((item) => (
                     <tr 
                       key={item.id} 
@@ -444,7 +443,6 @@ export const Dashboard: React.FC = () => {
                       <td className="px-6 py-4">
                         <p className="text-sm font-medium text-slate-700">{item.atividade}</p>
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-600 text-center">{item.uf}</td>
                       <td className="px-6 py-4 text-sm text-slate-600 whitespace-nowrap">{item.nome_solicitante}</td>
                       <td className="px-6 py-4 text-sm text-slate-600">{item.empresa}</td>
                       <td className="px-6 py-4 text-sm text-slate-600 font-medium">{formatDate(item.data_execucao)}</td>
@@ -470,9 +468,9 @@ export const Dashboard: React.FC = () => {
                                     e.stopPropagation();
                                     handleStatusUpdate(item.id, 'Aprovado');
                                   }}
-                                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white rounded-lg transition-all border border-emerald-200 text-xs font-bold shadow-sm"
+                                  className="flex items-center gap-1 px-2 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white rounded-lg transition-all border border-emerald-200 text-[10px] font-bold shadow-sm"
                                 >
-                                  <CheckCircle2 size={14} />
+                                  <CheckCircle2 size={12} />
                                   Aprovar
                                 </button>
                                 <button
@@ -481,9 +479,9 @@ export const Dashboard: React.FC = () => {
                                     setItemToReject(item.id);
                                     setIsRejectModalOpen(true);
                                   }}
-                                  className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-700 hover:bg-red-600 hover:text-white rounded-lg transition-all border border-red-200 text-xs font-bold shadow-sm"
+                                  className="flex items-center gap-1 px-2 py-1 bg-red-50 text-red-700 hover:bg-red-600 hover:text-white rounded-lg transition-all border border-red-200 text-[10px] font-bold shadow-sm"
                                 >
-                                  <XCircle size={14} />
+                                  <XCircle size={12} />
                                   Reprovar
                                 </button>
                               </div>
