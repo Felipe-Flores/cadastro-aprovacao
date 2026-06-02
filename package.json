@@ -7,6 +7,7 @@
     "backend"
   ],
   "scripts": {
+    "build": "npm run build --workspace=frontend && npm run build --workspace=backend",
     "build-all": "npm run build --workspace=frontend && npm run build --workspace=backend"
   },
   "dependencies": {
