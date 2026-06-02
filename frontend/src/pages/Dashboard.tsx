@@ -400,9 +400,7 @@ export const Dashboard: React.FC = () => {
                   <tr>
                     {[
                       { label: 'Cidade', key: 'cidade' },
-                      { label: 'PON', key: 'pon' },
                       { label: 'Atividade', key: 'atividade' },
-                      { label: 'UF', key: 'uf', align: 'center' },
                       { label: 'Solicitante', key: 'nome_solicitante' },
                       { label: 'Empresa', key: 'empresa' },
                       { label: 'Data Execução', key: 'data_execucao' },
@@ -421,15 +419,15 @@ export const Dashboard: React.FC = () => {
                       </th>
                     ))}
                     {(user?.cargo === 'gestor-master' || user?.cargo === 'gestor') && (
-                      <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase align-center tracking-wider text-right">Ações</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Ações</th>
                     )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {loading ? (
-                    <tr><td colSpan={10} className="px-6 py-10 text-center text-slate-400">Carregando dados...</td></tr>
+                    <tr><td colSpan={8} className="px-6 py-10 text-center text-slate-400">Carregando dados...</td></tr>
                   ) : filteredAndSortedAprovacoes.length === 0 ? (
-                    <tr><td colSpan={10} className="px-6 py-10 text-center text-slate-400">Nenhum registro encontrado.</td></tr>
+                    <tr><td colSpan={8} className="px-6 py-10 text-center text-slate-400">Nenhum registro encontrado.</td></tr>
                   ) : filteredAndSortedAprovacoes.map((item) => (
                     <tr 
                       key={item.id} 
@@ -458,7 +456,7 @@ export const Dashboard: React.FC = () => {
                         </div>
                       </td>
                       {(user?.cargo === 'gestor-master' || user?.cargo === 'gestor') && (
-                        <td className="px-6 py-4 text-right">
+                        <td className="px-6 py-4 text-center">
                           {item.status === 'Pendente' ? (
                             // Regra: Gestor só aprova se estiver dentro do slot ('Sim'). Master aprova qualquer uma.
                             (user?.cargo === 'gestor-master' || item.dentro_time_slot === 'Sim') ? (
