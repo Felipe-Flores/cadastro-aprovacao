@@ -537,7 +537,7 @@ export const Dashboard: React.FC = () => {
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Cidade</label>
                   <input
                     type="text" required placeholder="Ex: Campo Grande"
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 uppercase rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                     value={formData.cidade} onChange={(e) => setFormData({...formData, cidade: e.target.value.toUpperCase()})}
                   />
                 </div>
@@ -545,7 +545,7 @@ export const Dashboard: React.FC = () => {
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">UF</label>
                   <input
                     type="text" required placeholder="Ex: MS" maxLength={2}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 uppercase rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                     value={formData.uf} onChange={(e) => setFormData({...formData, uf: e.target.value.toUpperCase()})}
                   />
                 </div>
@@ -562,7 +562,7 @@ export const Dashboard: React.FC = () => {
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Matrícula Técnico</label>
                   <input 
                     type="text" required placeholder="A80xxxx"
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 uppercase rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                     value={formData.matricula_tecnico} onChange={(e) => setFormData({...formData, matricula_tecnico: e.target.value})}
                   />
                 </div>
@@ -570,7 +570,7 @@ export const Dashboard: React.FC = () => {
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Nome Técnico</label>
                   <input 
                     type="text" required placeholder="Nome completo"
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 uppercase rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                     value={formData.tecnico} onChange={(e) => setFormData({...formData, tecnico: e.target.value})}
                   />
                 </div>
