@@ -402,7 +402,6 @@ export const Dashboard: React.FC = () => {
                       { label: 'Cidade', key: 'cidade' },
                       { label: 'PON', key: 'pon' },
                       { label: 'Atividade', key: 'atividade' },
-                      { label: 'Cidade', key: 'cidade' },
                       { label: 'UF', key: 'uf', align: 'center' },
                       { label: 'Solicitante', key: 'nome_solicitante' },
                       { label: 'Empresa', key: 'empresa' },
@@ -428,9 +427,9 @@ export const Dashboard: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {loading ? (
-                    <tr><td colSpan={9} className="px-6 py-10 text-center text-slate-400">Carregando dados...</td></tr>
+                    <tr><td colSpan={10} className="px-6 py-10 text-center text-slate-400">Carregando dados...</td></tr>
                   ) : filteredAndSortedAprovacoes.length === 0 ? (
-                    <tr><td colSpan={9} className="px-6 py-10 text-center text-slate-400">Nenhum registro encontrado.</td></tr>
+                    <tr><td colSpan={10} className="px-6 py-10 text-center text-slate-400">Nenhum registro encontrado.</td></tr>
                   ) : filteredAndSortedAprovacoes.map((item) => (
                     <tr 
                       key={item.id} 
@@ -440,14 +439,13 @@ export const Dashboard: React.FC = () => {
                       }}
                       className="hover:bg-slate-100/50 even:bg-slate-50/50 transition-colors group cursor-pointer"
                     >
-                      <td className="px-6 py-4 text-sm text-slate-600">{item.cidade}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600 whitespace-nowrap">{item.cidade}</td>
                       <td className="px-6 py-4 font-mono text-sm font-semibold text-indigo-600">{item.pon}</td>
                       <td className="px-6 py-4">
                         <p className="text-sm font-medium text-slate-700">{item.atividade}</p>
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-600">{item.cidade}</td>
                       <td className="px-6 py-4 text-sm text-slate-600 text-center">{item.uf}</td>
-                      <td className="px-6 py-4 text-sm text-slate-600">{item.nome_solicitante}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600 whitespace-nowrap">{item.nome_solicitante}</td>
                       <td className="px-6 py-4 text-sm text-slate-600">{item.empresa}</td>
                       <td className="px-6 py-4 text-sm text-slate-600 font-medium">{formatDate(item.data_execucao)}</td>
                       <td className="px-6 py-4 text-center">
