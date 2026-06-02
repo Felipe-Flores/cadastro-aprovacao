@@ -1,0 +1,12 @@
+{
+  "builds": [
+    {
+      "src": "api/index.ts",
+      "use": "@vercel/node",
+      "config": { "includeFiles": ["dist/**"] }
+    }
+  ],
+  "routes": [{ "src": "/(.*)", "dest": "api/index.ts" }],
+  "installCommand": "npm install",
+  "buildCommand": "npm run build"
+}
