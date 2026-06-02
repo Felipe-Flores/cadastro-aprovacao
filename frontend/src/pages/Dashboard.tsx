@@ -306,7 +306,7 @@ export const Dashboard: React.FC = () => {
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Navbar Superior */}
       <nav className="bg-white border-b border-slate-200 px-6 py-4 shadow-sm">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+        <div className="max-w-full mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2 text-indigo-600">
             <LayoutDashboard size={24} strokeWidth={2.5} />
             <span className="text-xl font-bold text-slate-900 tracking-tight">Portal de Aprovação</span>
@@ -346,7 +346,7 @@ export const Dashboard: React.FC = () => {
       </nav>
 
       {/* Conteúdo Principal */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6">
+      <main className="flex-1 max-w-full w-full mx-auto p-6">
         <div className="flex flex-col gap-6">
           {/* Barra de Busca e Título */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
