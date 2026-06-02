@@ -399,6 +399,7 @@ export const Dashboard: React.FC = () => {
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
                     {[
+                      { label: 'Cidade', key: 'cidade' },
                       { label: 'PON', key: 'pon' },
                       { label: 'Atividade', key: 'atividade' },
                       { label: 'Cidade', key: 'cidade' },
@@ -439,6 +440,7 @@ export const Dashboard: React.FC = () => {
                       }}
                       className="hover:bg-slate-100/50 even:bg-slate-50/50 transition-colors group cursor-pointer"
                     >
+                      <td className="px-6 py-4 text-sm text-slate-600">{item.cidade}</td>
                       <td className="px-6 py-4 font-mono text-sm font-semibold text-indigo-600">{item.pon}</td>
                       <td className="px-6 py-4">
                         <p className="text-sm font-medium text-slate-700">{item.atividade}</p>
