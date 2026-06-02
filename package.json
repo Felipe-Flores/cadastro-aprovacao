@@ -7,7 +7,7 @@
     "backend"
   ],
   "scripts": {
-    "build-all": "npm run build --workspace=frontend && npm run build --workspace=backend && rm -rf public && mkdir -p public && cp -r frontend/dist/* public/"
+    "build-all": "npm run build --workspace=frontend && npm run build --workspace=backend"
   },
   "dependencies": {
   },
