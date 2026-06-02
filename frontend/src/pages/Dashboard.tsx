@@ -503,9 +503,17 @@ export const Dashboard: React.FC = () => {
             
             <form onSubmit={handleCreateActivity} className="p-6 overflow-y-auto space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2 space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Atividade</label>
+                  <input
+                    type="text" required placeholder="Digite numero da atividade Ex: 18798549"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                    value={formData.atividade} onChange={(e) => setFormData({...formData, atividade: e.target.value})}
+                  />
+                </div>
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Número PON</label>
-                  <input 
+                  <input
                     type="text" required placeholder="Pon: 8-PKd85"
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                     value={formData.pon} onChange={(e) => setFormData({...formData, pon: e.target.value})}
@@ -513,19 +521,11 @@ export const Dashboard: React.FC = () => {
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Data Execução</label>
-                  <input 
+                  <input
                     type="date" required
                     max={new Date().toISOString().split('T')[0]}
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                     value={formData.data_execucao} onChange={(e) => setFormData({...formData, data_execucao: e.target.value})}
-                  />
-                </div>
-                <div className="md:col-span-2 space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Atividade</label>
-                  <input 
-                    type="text" required placeholder="Digite numero da atividade Ex: 18798549"
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                    value={formData.atividade} onChange={(e) => setFormData({...formData, atividade: e.target.value})}
                   />
                 </div>
                 <div className="space-y-1">
