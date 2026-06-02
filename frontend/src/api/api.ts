@@ -1,10 +1,10 @@
 import axios from 'axios';
 
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const baseURL = import.meta.env.VITE_API_URL || '/api';
 
 const api = axios.create({
   // Usa a variável de ambiente no deploy ou localhost no desenvolvimento
-  baseURL: baseURL.endsWith('/') ? baseURL.slice(0, -1) : baseURL,
+  baseURL: baseURL,
 });
 
 // Interceptor para injetar o token em todas as requisições automaticamente
