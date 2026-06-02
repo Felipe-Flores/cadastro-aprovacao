@@ -609,9 +609,9 @@ export const Dashboard: React.FC = () => {
                     onChange={(e) => setFormData({...formData, motivo: e.target.value})}
                   >
                     <option value="" disabled>Selecione o motivo</option>
-                    <option value="Falta de Controle">Atividade complexa</option>
-                    <option value="Falta de Controle">Falta de controle</option>
-                    <option value="Falta de Controle">Atividade injetada vencida</option>
+                    <option value="Atividade complexa">Atividade complexa</option>
+                    <option value="Falta de controle">Falta de controle</option>
+                    <option value="Atividade injetada vencida">Atividade injetada vencida</option>
                     <option value="Erro Sistemico">Erro Sistemico</option>
                     <option value="Ordem Voltou para o Bucket">Roterizador moveu para o bucket</option>
                   </select>
