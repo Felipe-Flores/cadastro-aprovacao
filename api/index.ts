@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../backend/src/app.module';
 import { INestApplication } from '@nestjs/common';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import * as express from 'express';
+import express from 'express';
 import { VercelRequest, VercelResponse } from '@vercel/node';
 
 let cachedApp: INestApplication;
