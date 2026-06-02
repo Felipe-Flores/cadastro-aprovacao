@@ -11,6 +11,12 @@ export class Aprovacao {
   @Column()
   atividade: string;
 
+  @Column({ nullable: true })
+  cidade: string;
+
+  @Column({ nullable: true })
+  uf: string;
+
   @Column()
   dentro_time_slot: string; // "Sim" ou "Não"
 

@@ -28,6 +28,8 @@ interface Aprovacao {
   id: number;
   pon: string;
   atividade: string;
+  cidade: string;
+  uf: string;
   data_execucao: string;
   nome_solicitante: string;
   matricula_solicitante: string;
@@ -71,6 +73,8 @@ export const Dashboard: React.FC = () => {
   const [formData, setFormData] = useState({
     pon: '',
     atividade: '',
+    cidade: '',
+    uf: '',
     dentro_time_slot: 'Sim',
     matricula_tecnico: '',
     tecnico: '',
@@ -84,6 +88,8 @@ export const Dashboard: React.FC = () => {
     setFormData({
       pon: '',
       atividade: '',
+      cidade: '',
+      uf: '',
       dentro_time_slot: 'Sim',
       matricula_tecnico: '',
       tecnico: '',
@@ -155,6 +161,8 @@ export const Dashboard: React.FC = () => {
       ID: item.id,
       PON: item.pon,
       'Atividade (OS)': item.atividade,
+      Cidade: item.cidade,
+      UF: item.uf,
       'Data Execução': formatDate(item.data_execucao),
       'Nome Solicitante': item.nome_solicitante,
       'Matrícula Solicitante': item.matricula_solicitante,
@@ -216,6 +224,8 @@ export const Dashboard: React.FC = () => {
       return (
         (item.pon ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (item.empresa ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (item.cidade ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (item.uf ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (item.status ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (item.dentro_time_slot ?? "").toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -391,6 +401,8 @@ export const Dashboard: React.FC = () => {
                     {[
                       { label: 'PON', key: 'pon' },
                       { label: 'Atividade', key: 'atividade' },
+                      { label: 'Cidade', key: 'cidade' },
+                      { label: 'UF', key: 'uf', align: 'center' },
                       { label: 'Solicitante', key: 'nome_solicitante' },
                       { label: 'Empresa', key: 'empresa' },
                       { label: 'Data Execução', key: 'data_execucao' },
@@ -415,9 +427,9 @@ export const Dashboard: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {loading ? (
-                    <tr><td colSpan={7} className="px-6 py-10 text-center text-slate-400">Carregando dados...</td></tr>
+                    <tr><td colSpan={9} className="px-6 py-10 text-center text-slate-400">Carregando dados...</td></tr>
                   ) : filteredAndSortedAprovacoes.length === 0 ? (
-                    <tr><td colSpan={7} className="px-6 py-10 text-center text-slate-400">Nenhum registro encontrado.</td></tr>
+                    <tr><td colSpan={9} className="px-6 py-10 text-center text-slate-400">Nenhum registro encontrado.</td></tr>
                   ) : filteredAndSortedAprovacoes.map((item) => (
                     <tr 
                       key={item.id} 
@@ -431,6 +443,8 @@ export const Dashboard: React.FC = () => {
                       <td className="px-6 py-4">
                         <p className="text-sm font-medium text-slate-700">{item.atividade}</p>
                       </td>
+                      <td className="px-6 py-4 text-sm text-slate-600">{item.cidade}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600 text-center">{item.uf}</td>
                       <td className="px-6 py-4 text-sm text-slate-600">{item.nome_solicitante}</td>
                       <td className="px-6 py-4 text-sm text-slate-600">{item.empresa}</td>
                       <td className="px-6 py-4 text-sm text-slate-600 font-medium">{formatDate(item.data_execucao)}</td>
@@ -517,6 +531,22 @@ export const Dashboard: React.FC = () => {
                     type="text" required placeholder="Pon: 8-PKd85"
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                     value={formData.pon} onChange={(e) => setFormData({...formData, pon: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Cidade</label>
+                  <input
+                    type="text" required placeholder="Ex: Campo Grande"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                    value={formData.cidade} onChange={(e) => setFormData({...formData, cidade: e.target.value.toUpperCase()})}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">UF</label>
+                  <input
+                    type="text" required placeholder="Ex: MS" maxLength={2}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                    value={formData.uf} onChange={(e) => setFormData({...formData, uf: e.target.value.toUpperCase()})}
                   />
                 </div>
                 <div className="space-y-1">
@@ -662,6 +692,15 @@ export const Dashboard: React.FC = () => {
                   <div className="space-y-1 px-1">
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Atividade (OS)</p>
                     <p className="text-slate-700 font-medium">{selectedAprovacao.atividade}</p>
+                  </div>
+
+                  <div className="space-y-1 px-1">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Cidade</p>
+                    <p className="text-slate-700 font-medium">{selectedAprovacao.cidade}</p>
+                  </div>
+                  <div className="space-y-1 px-1">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">UF</p>
+                    <p className="text-slate-700 font-medium">{selectedAprovacao.uf}</p>
                   </div>
                 </div>
 
