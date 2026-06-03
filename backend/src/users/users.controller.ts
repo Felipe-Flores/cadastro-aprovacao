@@ -1,8 +1,12 @@
-import { Controller, Post, Body, Get, Patch, Delete, Param, UseInterceptors, ClassSerializerInterceptor } from '@nestjs/common';
+import { Controller, Post, Body, Get, Patch, Delete, Param, UseInterceptors, ClassSerializerInterceptor, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './user.entity';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @UseInterceptors(ClassSerializerInterceptor)
+@UseGuards(RolesGuard)
+@Roles('gestor-master')
 @Controller('usuarios')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}

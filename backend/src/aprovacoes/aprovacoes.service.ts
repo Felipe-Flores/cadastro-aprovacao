@@ -58,6 +58,11 @@ export class AprovacoesService {
       throw new NotFoundException(`Pedido de aprovação com ID ${id} não encontrado`);
     }
 
+    // Segurança: Impede que um solicitante aprove/reprove atividades via API direta
+    if (user.cargo === 'solicitante') {
+      throw new ForbiddenException('Solicitantes não possuem permissão para alterar o status de atividades.');
+    }
+
     // Nova Regra: Se estiver fora do slot ('Não'), apenas gestor-master pode aprovar/reprovar
     if (aprovacao.dentro_time_slot === 'Não' && user.cargo !== 'gestor-master') {
       throw new ForbiddenException('Apenas gestores master podem aprovar atividades fora do time slot.');

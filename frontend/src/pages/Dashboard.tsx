@@ -214,10 +214,12 @@ export const Dashboard: React.FC = () => {
   const filteredAndSortedAprovacoes = useMemo(() => {
     return aprovacoes
     .filter((item) => {
-      // Regra de Visibilidade: Gestores veem apenas o que está Pendente ou o que eles mesmos solicitaram
-      const isVisible = user?.cargo === 'solicitante' || 
-                        item.status === 'Pendente' || 
-                        item.matricula_solicitante === user?.matricula;
+      // Regra de Visibilidade Reforçada:
+      // 1. Solicitante: Vê apenas o que ele mesmo criou.
+      // 2. Gestor: Vê o que está 'Pendente' OU o que ele mesmo criou.
+      // 3. Master: Pode ver tudo (opcional, dependendo da sua regra de negócio).
+      const isOwner = item.matricula_solicitante === user?.matricula;
+      const isVisible = (user?.cargo !== 'solicitante' && item.status === 'Pendente') || isOwner;
       
       if (!isVisible) return false;
 
