@@ -153,9 +153,11 @@ export const UsersManagement: React.FC = () => {
 
       closeModal();
       fetchUsuarios();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao processar usuário', error);
-      showToast('Erro na operação. Verifique os dados.', 'error');
+      const serverMessage = error.response?.data?.message;
+      const displayMessage = Array.isArray(serverMessage) ? serverMessage[0] : serverMessage;
+      showToast(displayMessage || 'Erro na operação. Verifique os dados.', 'error');
     } finally {
       setIsSaving(false);
     }

@@ -2,10 +2,11 @@ import { Controller, Post, Body, Get, Patch, Delete, Param, UseInterceptors, Cla
 import { UsersService } from './users.service';
 import { User } from './user.entity';
 import { RolesGuard } from '../auth/roles.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 
 @UseInterceptors(ClassSerializerInterceptor)
-@UseGuards(RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('gestor-master')
 @Controller('usuarios')
 export class UsersController {
