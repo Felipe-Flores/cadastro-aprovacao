@@ -38,20 +38,15 @@ export class AprovacoesService {
   async listarTodas(user: ActiveUser) {
     const query = this.aprovacoesRepository.createQueryBuilder('aprovacao');
 
-    switch (user.cargo) {
-      case 'solicitante':
-        // SEGURANÇA MÁXIMA: O solicitante NUNCA recebe dados de terceiros do banco
-        query.where('aprovacao.matricula_solicitante = :matricula', { matricula: user.matricula });
-        break;
-      case 'gestor':
-        // O Gestor padrão vê o que precisa aprovar (Pendente) ou o que ele mesmo criou
-        query.where('aprovacao.status = :status', { status: 'Pendente' })
-             .orWhere('aprovacao.matricula_solicitante = :matricula', { matricula: user.matricula });
-        break;
-      case 'gestor-master':
-        // O Master pode ver tudo (útil para o seu botão de exportar Excel com histórico completo)
-        // Nenhuma restrição de WHERE aplicada aqui
-        break;
+    if (user.cargo === 'solicitante') {
+      // Solicitante vê todas as suas próprias solicitações (histórico completo)
+      query.where('aprovacao.matricula_solicitante = :matricula', { matricula: user.matricula });
+    } else {
+      // Gestores e Gestores Master vêem:
+      // 1. Apenas o que ainda está Pendente para aprovação
+      // 2. OU o que eles mesmos solicitaram (histórico pessoal, caso um gestor também seja solicitante)
+      query.where('aprovacao.status = :status', { status: 'Pendente' })
+           .orWhere('aprovacao.matricula_solicitante = :matricula', { matricula: user.matricula });
     }
 
     return await query.orderBy('aprovacao.data_inserida', 'DESC').getMany();
