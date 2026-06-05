@@ -34,11 +34,15 @@ export class UsersService {
       dadosDoUsuario.senha = await bcrypt.hash(dadosDoUsuario.senha, salt);
     }
     const novoUsuario = this.usersRepository.create(dadosDoUsuario);
-    return await this.usersRepository.save(novoUsuario);
+    const usuarioSalvo = await this.usersRepository.save(novoUsuario);
+    delete usuarioSalvo.senha; // Remove a senha do retorno da criação
+    return usuarioSalvo;
   }
 
   findAll() {
-    return this.usersRepository.find();
+    return this.usersRepository.find({
+      select: ['id', 'matricula', 'nome', 'empresa', 'cargo'], // Retorna apenas o necessário
+    });
   }
 
   async findByMatricula(matricula: string) {
@@ -62,7 +66,10 @@ export class UsersService {
       dados.senha = await bcrypt.hash(dados.senha, salt);
     }
     await this.usersRepository.update(id, dados);
-    return this.usersRepository.findOneBy({ id });
+    return this.usersRepository.findOne({
+      where: { id },
+      select: ['id', 'matricula', 'nome', 'empresa', 'cargo'], // Retorna apenas o necessário após update
+    });
   }
 
   async remove(id: number) {
