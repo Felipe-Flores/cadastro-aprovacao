@@ -363,15 +363,16 @@ export const Dashboard: React.FC = () => {
               />
             </div>
             <div className="flex gap-2">
-              <div className="flex bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
+              {(user?.cargo === 'gestor' || user?.cargo === 'gestor-master') && (
                 <button 
                   onClick={exportToExcel}
-                  className="p-2 text-slate-500 hover:text-emerald-600 transition-colors"
+                  className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-100"
                   title="Exportar para Excel"
                 >
-                  <FileSpreadsheet size={20} />
+                  <Download size={18} />
+                  <span className="hidden sm:inline">Exportar Excel</span>
                 </button>
-              </div>
+              )}
               <button 
                 onClick={() => setIsModalOpen(true)}
                 className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-100"
