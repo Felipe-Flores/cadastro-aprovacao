@@ -35,8 +35,8 @@ export class UsersService {
     }
     const novoUsuario = this.usersRepository.create(dadosDoUsuario);
     const usuarioSalvo = await this.usersRepository.save(novoUsuario);
-    delete usuarioSalvo.senha; // Remove a senha do retorno da criação
-    return usuarioSalvo;
+    const { senha, ...usuarioSemSenha } = usuarioSalvo; // Remove a senha do retorno da criação
+    return usuarioSemSenha;
   }
 
   findAll() {
