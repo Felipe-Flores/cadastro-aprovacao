@@ -42,11 +42,8 @@ export class AprovacoesService {
       // Solicitante vê todas as suas próprias solicitações (histórico completo)
       query.where('aprovacao.matricula_solicitante = :matricula', { matricula: user.matricula });
     } else {
-      // Gestores e Gestores Master vêem:
-      // 1. Apenas o que ainda está Pendente para aprovação
-      // 2. OU o que eles mesmos solicitaram (histórico pessoal, caso um gestor também seja solicitante)
-      query.where('aprovacao.status = :status', { status: 'Pendente' })
-           .orWhere('aprovacao.matricula_solicitante = :matricula', { matricula: user.matricula });
+      // Gestores e Gestores Master recebem todos os registros para permitir a exportação completa.
+      // O filtro para exibir apenas 'Pendentes' na tela será aplicado no Frontend.
     }
 
     return await query.orderBy('aprovacao.data_inserida', 'DESC').getMany();

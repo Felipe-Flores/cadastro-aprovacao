@@ -157,7 +157,7 @@ export const Dashboard: React.FC = () => {
   };
 
   const exportToExcel = () => {
-    const dataToExport = filteredAndSortedAprovacoes.map(item => ({
+    const dataToExport = searchedAndSortedAprovacoes.map(item => ({
       ID: item.id,
       PON: item.pon,
       'Atividade (OS)': item.atividade,
@@ -239,7 +239,6 @@ export const Dashboard: React.FC = () => {
       const valA = a[key];
       const valB = b[key];
 
-      // Garantindo que a comparação seja feita como string ou número
       const valueA = valA !== null && valA !== undefined ? valA : '';
       const valueB = valB !== null && valB !== undefined ? valB : '';
 
@@ -247,7 +246,16 @@ export const Dashboard: React.FC = () => {
       if (valueA > valueB) return direction === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [aprovacoes, searchTerm, sortConfig, user]);
+  }, [aprovacoes, searchTerm, sortConfig]);
+
+  // 2. Depois filtramos o que aparece na tela (Apenas Pendentes para Gestores)
+  const filteredAndSortedAprovacoes = useMemo(() => {
+    return searchedAndSortedAprovacoes.filter((item) => {
+      const isOwner = item.matricula_solicitante === user?.matricula;
+      // Na tela: Gestores veem apenas itens 'Pendente' ou suas próprias solicitações.
+      return (user?.cargo !== 'solicitante' && item.status === 'Pendente') || isOwner;
+    });
+  }, [searchedAndSortedAprovacoes, user]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
