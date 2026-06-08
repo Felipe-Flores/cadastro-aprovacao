@@ -211,17 +211,15 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const filteredAndSortedAprovacoes = useMemo(() => {
+  // 1. Primeiro filtramos pela busca e ordenação (Base completa para o Excel)
+  const searchedAndSortedAprovacoes = useMemo(() => {
     return aprovacoes
     .filter((item) => {
-      // Regra de Visibilidade Reforçada:
-      // 1. Solicitante: Vê apenas o que ele mesmo criou.
-      // 2. Gestor: Vê o que está 'Pendente' OU o que ele mesmo criou.
-      // 3. Master: Pode ver tudo (opcional, dependendo da sua regra de negócio).
+      // Base completa para busca e exportação:
+      // Solicitante: Vê apenas o que ele criou.
+      // Gestores/Master: Veem tudo (necessário para o Excel completo).
       const isOwner = item.matricula_solicitante === user?.matricula;
-      const isVisible = (user?.cargo !== 'solicitante' && item.status === 'Pendente') || isOwner;
-      
-      if (!isVisible) return false;
+      if (user?.cargo === 'solicitante' && !isOwner) return false;
 
       return (
         (item.pon ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -246,7 +244,7 @@ export const Dashboard: React.FC = () => {
       if (valueA > valueB) return direction === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [aprovacoes, searchTerm, sortConfig]);
+  }, [aprovacoes, searchTerm, sortConfig, user]);
 
   // 2. Depois filtramos o que aparece na tela (Apenas Pendentes para Gestores)
   const filteredAndSortedAprovacoes = useMemo(() => {
