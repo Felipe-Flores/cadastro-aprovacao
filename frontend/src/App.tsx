@@ -4,6 +4,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { Login } from './pages/Login'; 
 import { Dashboard } from './pages/Dashboard';
 import { UsersManagement } from './pages/UsersManagement';
+import { Analytics } from './pages/Analytics';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/usuarios" element={<UsersManagement />} />
+          <Route path="/analytics" element={<Analytics />} />
           
           {/* Se o usuário tentar acessar qualquer outra rota, mandamos para o login */}
           <Route path="*" element={<Navigate to="/login" replace />} />

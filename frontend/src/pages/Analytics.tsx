@@ -41,12 +41,12 @@ export const Analytics: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user && user.cargo === 'solicitante') {
-      navigate('/dashboard');
+    // Proteção: Se não houver token, volta para o login
+    if (!localStorage.getItem('access_token')) {
+      navigate('/login');
+      return;
     }
-  }, [user, navigate]);
 
-  useEffect(() => {
     const fetchAprovacoes = async () => {
       try {
         const response = await api.get('/aprovacoes');
@@ -57,8 +57,16 @@ export const Analytics: React.FC = () => {
         setLoading(false);
       }
     };
+
     fetchAprovacoes();
-  }, []);
+  }, [navigate]);
+
+  // Proteção de Cargo: Solicitantes não podem ver esta tela
+  useEffect(() => {
+    if (user && user.cargo === 'solicitante') {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const statsByCompany = useMemo(() => {
     const groups: Record<string, CompanyStats> = {};
