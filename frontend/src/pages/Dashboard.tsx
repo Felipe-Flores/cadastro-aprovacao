@@ -151,8 +151,12 @@ export const Dashboard: React.FC = () => {
         prev.map((item) => (item.id === id ? { ...item, status: newStatus as any } : item))
       );
       showToast(`Atividade ${newStatus === 'Aprovado' ? 'aprovada' : 'reprovada'} com sucesso!`, 'success');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao atualizar status', error);
+      if (error.response?.status === 401) {
+        logout();
+        navigate('/login');
+      }
       showToast('Erro ao atualizar status.', 'error');
     }
   };
@@ -289,8 +293,12 @@ export const Dashboard: React.FC = () => {
       try {
         const response = await api.get('/aprovacoes');
         setAprovacoes(response.data);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Erro ao buscar aprovações', error);
+        if (error.response?.status === 401) {
+          logout();
+          navigate('/login');
+        }
       } finally {
         setLoading(false);
       }

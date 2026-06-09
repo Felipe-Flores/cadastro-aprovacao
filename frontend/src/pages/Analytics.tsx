@@ -53,8 +53,12 @@ export const Analytics: React.FC = () => {
       try {
         const response = await api.get('/aprovacoes');
         setAprovacoes(response.data);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Erro ao buscar dados para analytics', error);
+        if (error.response?.status === 401) {
+          logout();
+          navigate('/login');
+        }
       } finally {
         setLoading(false);
       }
