@@ -250,8 +250,15 @@ export const Dashboard: React.FC = () => {
   const filteredAndSortedAprovacoes = useMemo(() => {
     return searchedAndSortedAprovacoes.filter((item) => {
       const isOwner = item.matricula_solicitante === user?.matricula;
-      // Na tela: Gestores veem apenas itens 'Pendente' ou suas próprias solicitações.
-      return (user?.cargo !== 'solicitante' && item.status === 'Pendente') || isOwner;
+
+      if (user?.cargo === 'gestor-master') {
+        // Requisito: Gestor Master vê na tela apenas o que é 'Pendente' E fora do slot ('Não')
+        // Mantemos 'isOwner' para que ele veja também o que ele mesmo solicitou
+        return (item.status === 'Pendente' && item.dentro_time_slot === 'Não') || isOwner;
+      }
+
+      // Regra para Gestores comuns e Solicitantes
+      return (user?.cargo === 'gestor' && item.status === 'Pendente') || isOwner;
     });
   }, [searchedAndSortedAprovacoes, user]);
 
