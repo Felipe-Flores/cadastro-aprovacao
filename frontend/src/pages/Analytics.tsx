@@ -14,7 +14,8 @@ import {
   XCircle,
   Clock,
   AlertTriangle,
-  Loader2
+  Loader2,
+  Filter
 } from 'lucide-react';
 
 interface Aprovacao {
@@ -38,6 +39,7 @@ export const Analytics: React.FC = () => {
   const { user, logout } = useContext(AuthContext);
   const [aprovacoes, setAprovacoes] = useState<Aprovacao[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedEmpresa, setSelectedEmpresa] = useState<string>('TODAS');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -97,14 +99,24 @@ export const Analytics: React.FC = () => {
     return Object.values(groups).sort((a, b) => b.total - a.total);
   }, [aprovacoes]);
 
+  const empresasList = useMemo(() => {
+    const list = aprovacoes.map(a => a.empresa || 'NÃO INFORMADA');
+    return Array.from(new Set(list)).sort();
+  }, [aprovacoes]);
+
+  const filteredStatsByCompany = useMemo(() => {
+    if (selectedEmpresa === 'TODAS') return statsByCompany;
+    return statsByCompany.filter(s => s.nome === selectedEmpresa);
+  }, [statsByCompany, selectedEmpresa]);
+
   const totals = useMemo(() => {
-    return statsByCompany.reduce((acc, curr) => ({
+    return filteredStatsByCompany.reduce((acc, curr) => ({
       total: acc.total + curr.total,
       pendentes: acc.pendentes + curr.pendentes,
       aprovados: acc.aprovados + curr.aprovados,
       foraSlot: acc.foraSlot + curr.foraSlot,
     }), { total: 0, pendentes: 0, aprovados: 0, foraSlot: 0 });
-  }, [statsByCompany]);
+  }, [filteredStatsByCompany]);
 
   if (loading) {
     return (
@@ -144,6 +156,24 @@ export const Analytics: React.FC = () => {
       </nav>
 
       <main className="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
+        {/* Filtro por Empresa */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200">
+            <Filter size={18} className="text-slate-400" />
+            <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">Filtrar Empresa:</span>
+            <select
+              value={selectedEmpresa}
+              onChange={(e) => setSelectedEmpresa(e.target.value)}
+              className="bg-transparent border-none focus:ring-0 text-sm font-bold text-slate-700 cursor-pointer min-w-[150px]"
+            >
+              <option value="TODAS">Todas as Empresas</option>
+              {empresasList.map(emp => (
+                <option key={emp} value={emp}>{emp}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         {/* Cards de Resumo */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
@@ -196,7 +226,7 @@ export const Analytics: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {statsByCompany.map((s) => {
+                {filteredStatsByCompany.map((s) => {
                   const rate = s.total > 0 ? ((s.aprovados / s.total) * 100).toFixed(1) : 0;
                   return (
                     <tr key={s.nome} className="hover:bg-slate-50 transition-colors">
