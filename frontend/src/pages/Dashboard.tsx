@@ -8,6 +8,7 @@ import {
   LayoutDashboard, 
   ClipboardList, 
   CheckCircle2, 
+  BarChart3,
   XCircle, 
   Clock,
   User as UserIcon,
@@ -328,14 +329,25 @@ export const Dashboard: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-6">
-            {user?.cargo === 'gestor-master' && (
-              <button 
-                onClick={() => navigate('/usuarios')}
-                className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors font-medium text-sm border-r border-slate-200 pr-6"
-              >
-                <Users size={18} />
-                <span>Usuários</span>
-              </button>
+            {(user?.cargo === 'gestor' || user?.cargo === 'gestor-master') && (
+              <div className="flex items-center gap-4 border-r border-slate-200 pr-6">
+                <button 
+                  onClick={() => navigate('/analytics')}
+                  className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors font-medium text-sm"
+                >
+                  <BarChart3 size={18} />
+                  <span>Indicadores</span>
+                </button>
+                {user?.cargo === 'gestor-master' && (
+                  <button 
+                    onClick={() => navigate('/usuarios')}
+                    className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors font-medium text-sm"
+                  >
+                    <Users size={18} />
+                    <span>Usuários</span>
+                  </button>
+                )}
+              </div>
             )}
             {user && (
               <div className="flex items-center gap-3 px-4 py-1.5 bg-slate-100 rounded-full">
