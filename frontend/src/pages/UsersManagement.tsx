@@ -116,7 +116,7 @@ export const UsersManagement: React.FC = () => {
     try {
       const response = await api.get('/usuarios');
       setUsuarios(response.data);
-    } catch (error: any) {
+     } catch (error: any) {
       console.error('Erro ao buscar usuários', error);
       if (error.response?.status === 401) {
         logout();

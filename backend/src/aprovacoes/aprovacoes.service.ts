@@ -66,6 +66,9 @@ export class AprovacoesService {
     }
 
     aprovacao.status = status;
+    aprovacao.nome_aprovador = user.nome;
+    aprovacao.matricula_aprovador = user.matricula;
+
     return await this.aprovacoesRepository.save(aprovacao);
   }
 }

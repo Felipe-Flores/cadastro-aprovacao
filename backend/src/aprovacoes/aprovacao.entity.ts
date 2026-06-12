@@ -47,6 +47,12 @@ export class Aprovacao {
   @Column({ default: 'Pendente' })
   status: string; // Pendente, Aprovado, Reprovado
 
+  @Column({ nullable: true })
+  nome_aprovador: string; // Nome de quem aprovou/reprovou
+
+  @Column({ nullable: true })
+  matricula_aprovador: string; // Matrícula de quem aprovou/reprovou
+
   @Column()
   data_execucao: string; // A data que o serviço será feito
 

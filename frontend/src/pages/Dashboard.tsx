@@ -42,6 +42,8 @@ interface Aprovacao {
   motivo: string;
   observacao?: string;
   status: 'Pendente' | 'Aprovado' | 'Reprovado';
+  nome_aprovador?: string;
+  matricula_aprovador?: string;
   data_inserida: string;
   data_modificacao: string;
 }
@@ -179,6 +181,8 @@ export const Dashboard: React.FC = () => {
       'Motivo da Solicitação': item.motivo,
       Observação: item.observacao || '',
       Status: item.status,
+      'Aprovado/Reprovado por': item.nome_aprovador || 'N/A',
+      'Matrícula do Aprovador': item.matricula_aprovador || 'N/A',
       'Criado em': item.data_inserida ? new Date(item.data_inserida).toLocaleString('pt-BR') : '',
       'Última Modificação': item.data_modificacao ? new Date(item.data_modificacao).toLocaleString('pt-BR') : ''
     }));
