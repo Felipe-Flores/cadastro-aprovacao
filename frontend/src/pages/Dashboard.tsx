@@ -627,7 +627,7 @@ export const Dashboard: React.FC = () => {
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Atividade está Dentro do Slot?</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Atividade está Dentro dos 30min?</label>
                   <select 
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                     value={formData.dentro_time_slot} onChange={(e) => setFormData({...formData, dentro_time_slot: e.target.value})}
