@@ -12,6 +12,42 @@ interface ActiveUser {
   userId: number;
 }
 
+// Mapeamento de Fusos Horários por UF (Brasil) para validação de segurança no servidor
+const UF_TIMEZONES: Record<string, string> = {
+  'AC': 'America/Rio_Branco',
+  'AM': 'America/Manaus',
+  'MS': 'America/Campo_Grande',
+  'MT': 'America/Cuiaba',
+  'RO': 'America/Porto_Velho',
+  'RR': 'America/Boa_Vista',
+};
+
+function calcularDentroSlot(slot: string, uf: string): string {
+  if (slot === 'SLA' || !slot || !uf) return 'Não';
+  try {
+    const [startTimeStr] = slot.split(' as ');
+    const [hours, minutes] = startTimeStr.split(':').map(Number);
+    
+    const timezone = UF_TIMEZONES[uf] || 'America/Sao_Paulo';
+    const now = new Date();
+
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      year: 'numeric', month: 'numeric', day: 'numeric',
+      hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false
+    });
+    const p: any = {};
+    formatter.formatToParts(now).forEach(part => p[part.type] = part.value);
+    const nowInTZ = new Date(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
+    const slotDate = new Date(nowInTZ);
+    slotDate.setHours(hours, minutes, 0, 0);
+    const diffMinutes = Math.abs(nowInTZ.getTime() - slotDate.getTime()) / (1000 * 60);
+    return diffMinutes <= 30 ? 'Sim' : 'Não';
+  } catch {
+    return 'Não';
+  }
+}
+
 @Injectable()
 export class AprovacoesService {
   constructor(
@@ -27,6 +63,9 @@ export class AprovacoesService {
     }
 
     const novaAprovacao = this.aprovacoesRepository.create(dados);
+    
+    // Força o cálculo por regra no servidor, garantindo que o status não seja burlado
+    novaAprovacao.dentro_time_slot = calcularDentroSlot(dados.time_slot, dados.uf);
     
     novaAprovacao.matricula_solicitante = usuarioLogado.matricula;
     novaAprovacao.nome_solicitante = usuarioLogado.nome;

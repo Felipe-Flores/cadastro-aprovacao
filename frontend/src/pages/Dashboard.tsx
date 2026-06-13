@@ -48,6 +48,46 @@ interface Aprovacao {
   data_modificacao: string;
 }
 
+// Mapeamento de Fusos Horários por UF (Brasil)
+const UF_TIMEZONES: Record<string, string> = {
+  'AC': 'America/Rio_Branco',
+  'AM': 'America/Manaus',
+  'MS': 'America/Campo_Grande',
+  'MT': 'America/Cuiaba',
+  'RO': 'America/Porto_Velho',
+  'RR': 'America/Boa_Vista',
+  // Todos os demais estados seguem o Horário de Brasília (UTC-3)
+};
+
+const calculateWithinSlot = (slot: string, uf: string) => {
+  if (slot === 'SLA' || !slot || !uf) return 'Não';
+  try {
+    const [startTimeStr] = slot.split(' as ');
+    const [hours, minutes] = startTimeStr.split(':').map(Number);
+    
+    const timezone = UF_TIMEZONES[uf] || 'America/Sao_Paulo';
+    const now = new Date();
+
+    // Converte o "agora" para o fuso horário da cidade da atividade
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      year: 'numeric', month: 'numeric', day: 'numeric',
+      hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false
+    });
+    const p: any = {};
+    formatter.formatToParts(now).forEach(part => p[part.type] = part.value);
+    const nowInTZ = new Date(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
+
+    const slotDate = new Date(nowInTZ);
+    slotDate.setHours(hours, minutes, 0, 0);
+
+    const diffMinutes = Math.abs(nowInTZ.getTime() - slotDate.getTime()) / (1000 * 60);
+    return diffMinutes <= 30 ? 'Sim' : 'Não';
+  } catch {
+    return 'Não';
+  }
+};
+
 export const Dashboard: React.FC = () => {
   const { user, logout } = useContext(AuthContext);
   const [aprovacoes, setAprovacoes] = useState<Aprovacao[]>([]);
@@ -78,7 +118,7 @@ export const Dashboard: React.FC = () => {
     atividade: '',
     cidade: '',
     uf: '',
-    dentro_time_slot: 'Sim',
+    dentro_time_slot: 'Não',
     matricula_tecnico: '',
     tecnico: '',
     time_slot: '',
@@ -93,7 +133,7 @@ export const Dashboard: React.FC = () => {
       atividade: '',
       cidade: '',
       uf: '',
-      dentro_time_slot: 'Sim',
+      dentro_time_slot: 'Não',
       matricula_tecnico: '',
       tecnico: '',
       time_slot: '',
@@ -102,6 +142,16 @@ export const Dashboard: React.FC = () => {
       data_execucao: ''
     });
   };
+
+  // Automação do campo "Dentro do Slot"
+  useEffect(() => {
+    if (isModalOpen) {
+      const result = calculateWithinSlot(formData.time_slot, formData.uf);
+      if (formData.dentro_time_slot !== result) {
+        setFormData(prev => ({ ...prev, dentro_time_slot: result }));
+      }
+    }
+  }, [formData.time_slot, formData.uf, isModalOpen]);
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -629,8 +679,9 @@ export const Dashboard: React.FC = () => {
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Atividade está Dentro dos 30min?</label>
                   <select 
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                    value={formData.dentro_time_slot} onChange={(e) => setFormData({...formData, dentro_time_slot: e.target.value})}
+                    disabled
+                    className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none text-slate-500 font-bold cursor-not-allowed"
+                    value={formData.dentro_time_slot} 
                   >
                     <option value="Sim">Sim</option>
                     <option value="Não">Não</option>
