@@ -48,17 +48,24 @@ Este é um sistema Full Stack desenvolvido para gerenciar usuários e fluxos de 
    ```
 3. Crie um arquivo `.env` na raiz da pasta `/backend` com as seguintes variáveis:
    ```env
-   DB_HOST=localhost
-   DB_PORT=5432
-   DB_USERNAME=seu_usuario
-   DB_PASSWORD=sua_senha
-   DB_NAME=aprovacao_app
+   DATABASE_URL=postgresql://seu_usuario:sua_senha@localhost:5432/aprovacao_app
    JWT_SECRET=sua_chave_secreta_aqui
+   NODE_ENV=development
+
+   # Opcional: apenas para criar o primeiro admin (uma única vez)
+   SETUP_ADMIN_SECRET=um_segredo_forte_para_setup
+   SETUP_ADMIN_PASSWORD=senha_forte_do_admin
    ```
 4. Inicie o servidor:
    ```bash
    npm run start:dev
    ```
+
+5. **Primeiro acesso (opcional):** se o banco estiver vazio, crie o admin inicial com:
+   ```bash
+   curl -H "x-setup-secret: um_segredo_forte_para_setup" http://localhost:3000/setup-admin
+   ```
+   Depois faça login com matrícula `ADMIN` e a senha definida em `SETUP_ADMIN_PASSWORD`. Remova `SETUP_ADMIN_SECRET` do `.env` após o setup.
 
 #### 3. Configuração do Frontend
 1. Acesse a pasta `frontend`.
@@ -89,7 +96,8 @@ A aplicação estará disponível em `http://localhost:5173` e o servidor em `ht
 6. **Start Command**: `node dist/main`
 7. Em **Environment Variables**, adicione:
    - `DATABASE_URL`: (A string que você copiou do Neon)
-   - `JWT_SECRET`: (Sua chave secreta)
+   - `JWT_SECRET`: (Sua chave secreta — obrigatória)
+   - `NODE_ENV`: `production`
    - `PORT`: `3000`
 
 ### 3. Frontend (Vercel)

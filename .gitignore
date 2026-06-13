@@ -11,5 +11,8 @@ npm-debug.log*
 .env
 .env.local
 
+# ngrok (pode conter authtoken local)
+ngrok.yml
+
 # IDEs
 .vscode/

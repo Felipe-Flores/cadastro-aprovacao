@@ -18,20 +18,29 @@ import { AppController } from './app.controller';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        url: configService.get<string>('DATABASE_URL'),
-        autoLoadEntities: true,
-        entities: [User, Aprovacao],
-        synchronize: true,
-        logging: true,
-        ssl: true,
-        extra: {
-          ssl: {
-            rejectUnauthorized: false,
-          },
-        },
-      }),
+      useFactory: (configService: ConfigService) => {
+        const isProduction = configService.get<string>('NODE_ENV') === 'production';
+        const databaseUrl = configService.get<string>('DATABASE_URL') ?? '';
+        const useSsl =
+          databaseUrl.length > 0 &&
+          !databaseUrl.includes('localhost') &&
+          !databaseUrl.includes('127.0.0.1');
+
+        return {
+          type: 'postgres' as const,
+          url: databaseUrl,
+          autoLoadEntities: true,
+          entities: [User, Aprovacao],
+          synchronize: !isProduction,
+          logging: !isProduction,
+          ...(useSsl
+            ? {
+                ssl: true,
+                extra: { ssl: { rejectUnauthorized: false } },
+              }
+            : {}),
+        };
+      },
     }),
     // Importa os módulos de negócio
     UsersModule,

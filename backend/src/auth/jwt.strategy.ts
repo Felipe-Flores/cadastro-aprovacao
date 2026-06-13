@@ -9,7 +9,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_SECRET') || 'chave-secreta-super-protegida',
+      secretOrKey: (() => {
+        const secret = configService.get<string>('JWT_SECRET');
+        if (!secret) {
+          throw new Error('JWT_SECRET não está definido. Configure a variável de ambiente antes de iniciar o servidor.');
+        }
+        return secret;
+      })(),
     });
   }
 
