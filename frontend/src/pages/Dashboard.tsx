@@ -634,6 +634,17 @@ export const Dashboard: React.FC = () => {
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 uppercase rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                     value={formData.uf} onChange={(e) => setFormData({...formData, uf: e.target.value.toUpperCase()})}
                   />
+                  <select 
+                    required
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all appearance-none"
+                    value={formData.uf} 
+                    onChange={(e) => setFormData({...formData, uf: e.target.value})}
+                  >
+                    <option value="" disabled>Selecione a UF</option>
+                    <option value="MS">MS</option>
+                    <option value="MT">MT</option>
+                    <option value="RO">RO</option>
+                  </select>
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Data Execução</label>
