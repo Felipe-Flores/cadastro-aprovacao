@@ -757,7 +757,7 @@ export const Dashboard: React.FC = () => {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50">
               <div>
-                <h3 className="text-xl font-bold text-slate-800">Detalhes da Atividade</h3>
+                <h3 className="text-xl font-bold text-slate-800">Detalhe da Atividade</h3>
                 <p className="text-xs text-slate-500 font-mono mt-0.5">ID: #{selectedAprovacao.id}</p>
               </div>
               <button onClick={closeDetailsModal} className="text-slate-400 hover:text-slate-600 transition-colors p-1 hover:bg-white rounded-full">
