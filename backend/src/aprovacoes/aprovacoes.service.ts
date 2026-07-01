@@ -22,12 +22,10 @@ const UF_TIMEZONES: Record<string, string> = {
   'RR': 'America/Boa_Vista',
 };
 
-function calcularDentroSlot(slot: string, uf: string): string {
-  if (slot === 'SLA' || !slot || !uf) return 'Não';
+function calcularDentroSlot(slot: string, uf: string, detalheAtividade?: string): string {
+  if (!slot || !uf) return 'Não';
+  if (slot === 'SLA') return 'Não';
   try {
-    const [startTimeStr] = slot.split(' as ');
-    const [hours, minutes] = startTimeStr.split(':').map(Number);
-    
     const timezone = UF_TIMEZONES[uf] || 'America/Sao_Paulo';
     const now = new Date();
 
@@ -39,6 +37,25 @@ function calcularDentroSlot(slot: string, uf: string): string {
     const p: any = {};
     formatter.formatToParts(now).forEach(part => p[part.type] = part.value);
     const nowInTZ = new Date(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
+
+    if (detalheAtividade === 'Defeito') {
+      const [startStr, endStr] = slot.split('-');
+      if (!startStr || !endStr) return 'Não';
+      const [startH, startM] = startStr.split(':').map(Number);
+      const [endH, endM] = endStr.split(':').map(Number);
+
+      const slotStart = new Date(nowInTZ);
+      slotStart.setHours(startH, startM, 0, 0);
+      const slotEnd = new Date(nowInTZ);
+      slotEnd.setHours(endH, endM, 0, 0);
+
+      if (nowInTZ >= slotStart && nowInTZ < slotEnd) return 'Sim';
+      return 'Não';
+    }
+
+    const [startTimeStr] = slot.split(' as ');
+    const [hours, minutes] = startTimeStr.split(':').map(Number);
+
     const slotDate = new Date(nowInTZ);
     slotDate.setHours(hours, minutes, 0, 0);
     const diffMinutes = Math.abs(nowInTZ.getTime() - slotDate.getTime()) / (1000 * 60);
@@ -65,7 +82,7 @@ export class AprovacoesService {
     const novaAprovacao = this.aprovacoesRepository.create(dados);
     
     // Força o cálculo por regra no servidor, garantindo que o status não seja burlado
-    novaAprovacao.dentro_time_slot = calcularDentroSlot(dados.time_slot, dados.uf);
+    novaAprovacao.dentro_time_slot = calcularDentroSlot(dados.time_slot, dados.uf, dados.detalhe_atividade);
     
     novaAprovacao.matricula_solicitante = usuarioLogado.matricula;
     novaAprovacao.nome_solicitante = usuarioLogado.nome;

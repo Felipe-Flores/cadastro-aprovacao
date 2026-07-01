@@ -60,16 +60,13 @@ const UF_TIMEZONES: Record<string, string> = {
   // Todos os demais estados seguem o Horário de Brasília (UTC-3)
 };
 
-const calculateWithinSlot = (slot: string, uf: string) => {
-  if (slot === 'SLA' || !slot || !uf) return 'Não';
+const calculateWithinSlot = (slot: string, uf: string, detalheAtividade?: string) => {
+  if (!slot || !uf) return 'Não';
+  if (slot === 'SLA') return 'Não';
   try {
-    const [startTimeStr] = slot.split(' as ');
-    const [hours, minutes] = startTimeStr.split(':').map(Number);
-    
     const timezone = UF_TIMEZONES[uf] || 'America/Sao_Paulo';
     const now = new Date();
 
-    // Converte o "agora" para o fuso horário da cidade da atividade
     const formatter = new Intl.DateTimeFormat('en-US', {
       timeZone: timezone,
       year: 'numeric', month: 'numeric', day: 'numeric',
@@ -78,6 +75,24 @@ const calculateWithinSlot = (slot: string, uf: string) => {
     const p: any = {};
     formatter.formatToParts(now).forEach(part => p[part.type] = part.value);
     const nowInTZ = new Date(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
+
+    if (detalheAtividade === 'Defeito') {
+      const [startStr, endStr] = slot.split('-');
+      if (!startStr || !endStr) return 'Não';
+      const [startH, startM] = startStr.split(':').map(Number);
+      const [endH, endM] = endStr.split(':').map(Number);
+
+      const slotStart = new Date(nowInTZ);
+      slotStart.setHours(startH, startM, 0, 0);
+      const slotEnd = new Date(nowInTZ);
+      slotEnd.setHours(endH, endM, 0, 0);
+
+      if (nowInTZ >= slotStart && nowInTZ < slotEnd) return 'Sim';
+      return 'Não';
+    }
+
+    const [startTimeStr] = slot.split(' as ');
+    const [hours, minutes] = startTimeStr.split(':').map(Number);
 
     const slotDate = new Date(nowInTZ);
     slotDate.setHours(hours, minutes, 0, 0);
@@ -149,12 +164,18 @@ export const Dashboard: React.FC = () => {
   // Automação do campo "Dentro do Slot"
   useEffect(() => {
     if (isModalOpen) {
-      const result = calculateWithinSlot(formData.time_slot, formData.uf);
+      const result = calculateWithinSlot(formData.time_slot, formData.uf, formData.detalhe_atividade);
       if (formData.dentro_time_slot !== result) {
         setFormData(prev => ({ ...prev, dentro_time_slot: result }));
       }
     }
-  }, [formData.time_slot, formData.uf, isModalOpen]);
+  }, [formData.time_slot, formData.uf, formData.detalhe_atividade, isModalOpen]);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      setFormData(prev => ({ ...prev, time_slot: '' }));
+    }
+  }, [formData.detalhe_atividade, isModalOpen]);
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -693,11 +714,20 @@ export const Dashboard: React.FC = () => {
                     onChange={(e) => setFormData({...formData, time_slot: e.target.value})}
                   >
                     <option value="" disabled>Selecione o horário</option>
-                    <option value="08:30 as 10:30">08:30-10:30</option>
-                    <option value="10:30 as 12:00">10:30-12:00</option>
-                    <option value="14:00 as 16:00">14:00-16:00</option>
-                    <option value="16:00 as 18:00">16:00-18:00</option>
-                    <option value="SLA">SLA</option>
+                    {formData.detalhe_atividade === 'Defeito' ? (
+                      <>
+                        <option value="08:30-12:30">08:30-12:30</option>
+                        <option value="12:30-18:00">12:30-18:00</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="08:30 as 10:30">08:30-10:30</option>
+                        <option value="10:30 as 12:00">10:30-12:00</option>
+                        <option value="14:00 as 16:00">14:00-16:00</option>
+                        <option value="16:00 as 18:00">16:00-18:00</option>
+                        <option value="SLA">SLA</option>
+                      </>
+                    )}
                   </select>
                 </div>
                 <div className="space-y-1">
