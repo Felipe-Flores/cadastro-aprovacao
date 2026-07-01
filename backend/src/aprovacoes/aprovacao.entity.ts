@@ -15,6 +15,9 @@ export class Aprovacao {
   cidade: string;
 
   @Column({ nullable: true })
+  detalhe_atividade: string;
+
+  @Column({ nullable: true })
   uf: string;
 
   @Column()

@@ -13,6 +13,10 @@ export class CreateAprovacaoDto {
   @IsString()
   cidade: string;
 
+  @IsNotEmpty({ message: 'O detalhe da atividade é obrigatório' })
+  @IsString()
+  detalhe_atividade: string;
+
   @IsNotEmpty({ message: 'A UF é obrigatória' })
   @IsString()
   uf: string;

@@ -30,6 +30,7 @@ interface Aprovacao {
   pon: string;
   atividade: string;
   cidade: string;
+  detalhe_atividade: string;
   uf: string;
   data_execucao: string;
   nome_solicitante: string;
@@ -117,6 +118,7 @@ export const Dashboard: React.FC = () => {
     pon: '',
     atividade: '',
     cidade: '',
+    detalhe_atividade: '',
     uf: '',
     dentro_time_slot: 'Não',
     matricula_tecnico: '',
@@ -132,6 +134,7 @@ export const Dashboard: React.FC = () => {
       pon: '',
       atividade: '',
       cidade: '',
+      detalhe_atividade: '',
       uf: '',
       dentro_time_slot: 'Não',
       matricula_tecnico: '',
@@ -219,6 +222,7 @@ export const Dashboard: React.FC = () => {
       PON: item.pon,
       'Atividade (OS)': item.atividade,
       Cidade: item.cidade,
+      'Detalhe da Atividade': item.detalhe_atividade,
       UF: item.uf,
       'Data Execução': formatDate(item.data_execucao),
       'Nome Solicitante': item.nome_solicitante,
@@ -284,6 +288,7 @@ export const Dashboard: React.FC = () => {
         (item.pon ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (item.empresa ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (item.cidade ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (item.detalhe_atividade ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (item.uf ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (item.status ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (item.dentro_time_slot ?? "").toLowerCase().includes(searchTerm.toLowerCase())
@@ -628,6 +633,19 @@ export const Dashboard: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Detalhe da Atividade</label>
+                  <select
+                    required
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all appearance-none"
+                    value={formData.detalhe_atividade}
+                    onChange={(e) => setFormData({...formData, detalhe_atividade: e.target.value})}
+                  >
+                    <option value="" disabled>Selecione o tipo</option>
+                    <option value="Defeito">Defeito</option>
+                    <option value="Instalação/ME">Instalação/ME</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">UF</label>
                   <select 
                     required
@@ -757,7 +775,7 @@ export const Dashboard: React.FC = () => {
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50">
               <div>
-                <h3 className="text-xl font-bold text-slate-800">Detalhe da Atividade</h3>
+                <h3 className="text-xl font-bold text-slate-800">Detalhes da Atividade</h3>
                 <p className="text-xs text-slate-500 font-mono mt-0.5">ID: #{selectedAprovacao.id}</p>
               </div>
               <button onClick={closeDetailsModal} className="text-slate-400 hover:text-slate-600 transition-colors p-1 hover:bg-white rounded-full">
@@ -790,6 +808,10 @@ export const Dashboard: React.FC = () => {
                   <div className="space-y-1 px-1">
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Cidade</p>
                     <p className="text-slate-700 font-medium">{selectedAprovacao.cidade}</p>
+                  </div>
+                  <div className="space-y-1 px-1">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Detalhe da Atividade</p>
+                    <p className="text-slate-700 font-medium">{selectedAprovacao.detalhe_atividade || 'Não informado'}</p>
                   </div>
                   <div className="space-y-1 px-1">
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">UF</p>
