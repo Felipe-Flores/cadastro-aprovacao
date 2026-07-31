@@ -107,13 +107,13 @@ Hoje a rota `/usuarios` (`frontend/src/pages/UsersManagement.tsx`) exibe a lista
 
 ### Task 9 — Integrar listagem à nova tela (remover modal)
 
-- [ ] Editar `frontend/src/pages/UsersManagement.tsx`: botão "Novo Usuário" passa a chamar `navigate('/usuarios/cadastro')`
-- [ ] Editar `frontend/src/pages/UsersManagement.tsx`: botão de editar (lápis) passa a chamar `navigate('/usuarios/cadastro?matricula=' + u.matricula)`
-- [ ] Remover o modal de cadastro/edição e todo código órfão: estados `isModalOpen`, `isEditMode`, `editingUserId`, `formData`, `showSenha`, handlers `handleCreateUser`, `handleEdit`, `resetForm`, `closeModal`, o `useEffect` da tecla Escape e imports não utilizados
-- [ ] Adicionar leitura de `location.state` (via `useLocation`) para exibir o toast de sucesso vindo da tela de formulário e limpar o state após exibir (`navigate(location.pathname, { replace: true, state: null })`)
-- [ ] Manter intactos: listagem, busca, modal de exclusão e toasts existentes
+- [v] Editar `frontend/src/pages/UsersManagement.tsx`: botão "Novo Usuário" passa a chamar `navigate('/usuarios/cadastro')`
+- [v] Editar `frontend/src/pages/UsersManagement.tsx`: botão de editar (lápis) passa a chamar `navigate('/usuarios/cadastro?matricula=' + u.matricula)`
+- [v] Remover o modal de cadastro/edição e todo código órfão: estados `isModalOpen`, `isEditMode`, `editingUserId`, `formData`, `showSenha`, handlers `handleCreateUser`, `handleEdit`, `resetForm`, `closeModal`, o `useEffect` da tecla Escape e imports não utilizados
+- [v] Adicionar leitura de `location.state` (via `useLocation`) para exibir o toast de sucesso vindo da tela de formulário e limpar o state após exibir (`navigate(location.pathname, { replace: true, state: null })`)
+- [v] Manter intactos: listagem, busca, modal de exclusão e toasts existentes
 
 ### Task 10 — Verificação
 
-- [ ] Rodar `npm run build` em `frontend/` (typecheck + build Vite) sem erros
-- [ ] Rodar `npm run dev` e validar manualmente: acesso bloqueado para não gestor-master; cadastro de novo usuário; alteração com matrícula existente (formulário preenchido + atualização); alteração com matrícula inexistente (mensagem "Usuário inexistente"); validação de senhas divergentes; senha em branco no modo alterar mantém a atual; navegação "Novo Usuário" e lápis da listagem; toast de sucesso ao voltar para a lista
+- [v] Rodar `npm run build` em `frontend/` (typecheck + build Vite) sem erros
+- [v] Rodar `npm run dev` e validar manualmente: acesso bloqueado para não gestor-master; cadastro de novo usuário; alteração com matrícula existente (formulário preenchido + atualização); alteração com matrícula inexistente (mensagem "Usuário inexistente"); validação de senhas divergentes; senha em branco no modo alterar mantém a atual; navegação "Novo Usuário" e lápis da listagem; toast de sucesso ao voltar para a lista
