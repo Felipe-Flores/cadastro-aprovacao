@@ -1,0 +1,310 @@
+<!DOCTYPE html><html class="light" lang="pt-BR"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Cadastro de Usuários | Sistema de Gestão</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-fixed-variant": "#454748",
+                    "primary-fixed": "#e2dfff",
+                    "surface-container-low": "#f1f3ff",
+                    "background": "#f9f9ff",
+                    "on-tertiary-fixed": "#191c1d",
+                    "on-secondary-container": "#fffbff",
+                    "on-background": "#141b2b",
+                    "surface-container-highest": "#dce2f7",
+                    "surface-container": "#e9edff",
+                    "outline": "#777587",
+                    "on-secondary": "#ffffff",
+                    "on-primary-fixed": "#0f0069",
+                    "error": "#ba1a1a",
+                    "on-primary-fixed-variant": "#3323cc",
+                    "on-primary-container": "#dad7ff",
+                    "secondary-container": "#6063ee",
+                    "primary-fixed-dim": "#c3c0ff",
+                    "on-secondary-fixed": "#07006c",
+                    "surface-dim": "#d3daef",
+                    "tertiary-fixed-dim": "#c5c7c8",
+                    "inverse-surface": "#293040",
+                    "inverse-on-surface": "#edf0ff",
+                    "surface-variant": "#dce2f7",
+                    "tertiary-container": "#5e6061",
+                    "on-primary": "#ffffff",
+                    "tertiary-fixed": "#e1e3e4",
+                    "surface-container-high": "#e1e8fd",
+                    "on-secondary-fixed-variant": "#2f2ebe",
+                    "secondary": "#4648d4",
+                    "surface": "#f9f9ff",
+                    "error-container": "#ffdad6",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-bright": "#f9f9ff",
+                    "primary-container": "#4f46e5",
+                    "on-error": "#ffffff",
+                    "surface-tint": "#4d44e3",
+                    "on-surface": "#141b2b",
+                    "tertiary": "#46494a",
+                    "inverse-primary": "#c3c0ff",
+                    "secondary-fixed-dim": "#c0c1ff",
+                    "primary": "#3525cd",
+                    "on-error-container": "#93000a",
+                    "secondary-fixed": "#e1e0ff",
+                    "outline-variant": "#c7c4d8",
+                    "on-tertiary": "#ffffff",
+                    "on-surface-variant": "#464555",
+                    "on-tertiary-container": "#dadbdc"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "container-padding": "16px",
+                    "xs": "4px",
+                    "gutter": "12px",
+                    "xl": "32px",
+                    "lg": "24px",
+                    "base": "4px",
+                    "sm": "8px"
+            },
+            "fontFamily": {
+                    "button": ["Inter"],
+                    "body-md": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "label-caps": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "headline-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "button": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "headline-lg": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body {
+            background-color: #f9f9ff;
+            color: #141b2b;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .form-card-shadow {
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(229, 231, 235, 0.5);
+        }
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23777587' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col overflow-x-hidden">
+<!-- Top Navigation Bar -->
+<header class="bg-surface border-b border-outline-variant z-40 sticky top-0">
+<div class="flex items-center px-4 h-16 w-full max-w-screen-xl mx-auto">
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-surface-container-low transition-colors rounded-full flex items-center justify-center opacity-70 active:opacity-100">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<h1 class="font-headline-md text-headline-md text-on-surface font-bold tracking-tight">Cadastro de Usuários</h1>
+</div>
+<!-- Desktop Nav Links -->
+<nav class="hidden md:flex ml-auto items-center gap-6">
+<a class="text-on-surface-variant hover:bg-surface-container-low px-3 py-2 rounded-lg transition-colors font-label-caps text-label-caps" href="#">DASHBOARD</a>
+<a class="text-primary font-bold px-3 py-2 rounded-lg transition-colors font-label-caps text-label-caps" href="#">USUÁRIOS</a>
+<a class="text-on-surface-variant hover:bg-surface-container-low px-3 py-2 rounded-lg transition-colors font-label-caps text-label-caps" href="#">RELATÓRIOS</a>
+<div class="h-6 w-px bg-outline-variant mx-2"></div>
+<button class="flex items-center gap-2 p-1 pl-3 bg-surface-container rounded-full border border-outline-variant">
+<span class="text-body-sm font-medium">Admin User</span>
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary text-xs">AD</div>
+</button>
+</nav>
+</div>
+</header>
+<main class="flex-grow flex items-center justify-center p-6 md:p-12">
+<div class="w-full max-w-5xl flex flex-col md:flex-row bg-surface-container-lowest rounded-xl overflow-hidden form-card-shadow border border-outline-variant">
+<!-- Side Visual/Info Panel -->
+<div class="w-full md:w-5/12 bg-primary p-8 md:p-12 flex flex-col justify-between relative overflow-hidden text-on-primary">
+<!-- Abstract BG Pattern -->
+<div class="absolute top-0 right-0 w-64 h-64 bg-secondary-container opacity-20 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
+<div class="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-10 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl"></div>
+<div class="relative z-10">
+<div class="w-12 h-12 bg-on-primary/10 rounded-xl flex items-center justify-center mb-8">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">person_add</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg mb-4">Gestão de Identidade</h2>
+<p class="text-body-md opacity-80 leading-relaxed">Gerencie os acessos do sistema de forma centralizada. Adicione novos colaboradores ou atualize permissões existentes com segurança.</p>
+</div>
+<div class="mt-12 relative z-10 hidden md:block">
+<div class="p-4 glass-effect rounded-lg border-white/20 bg-white/5 mb-4">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-white text-sm">security</span>
+<span class="text-xs font-bold uppercase tracking-wider opacity-70">Dica de Segurança</span>
+</div>
+<p class="text-xs opacity-90">Senhas devem conter pelo menos 8 caracteres, incluindo letras maiúsculas, números e símbolos.</p>
+</div>
+<div class="flex items-center gap-2 opacity-60">
+<span class="material-symbols-outlined text-sm">info</span>
+<span class="text-[10px] uppercase font-bold tracking-widest">v2.4.0 Stable</span>
+</div>
+</div>
+</div>
+<!-- Form Panel -->
+<div class="w-full md:w-7/12 p-8 md:p-12 bg-white">
+<form class="space-y-6" id="registrationForm">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Action Dropdown -->
+<div class="col-span-1 md:col-span-2">
+<label class="block text-label-caps font-label-caps text-on-surface-variant mb-2" for="acao">Ação Desejada</label>
+<select class="w-full h-12 px-4 rounded-lg border border-outline-variant bg-surface-bright focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none text-body-md" id="acao">
+<option value="novo">Novo Usuário</option>
+<option value="alterar">Alterar Usuário</option>
+</select>
+</div>
+<!-- Enrollment -->
+<div class="col-span-1">
+<label class="block text-label-caps font-label-caps text-on-surface-variant mb-2" for="matricula">Matrícula</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-lg">badge</span>
+<input class="w-full h-12 pl-11 pr-4 rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none text-body-md placeholder:text-outline/50" id="matricula" placeholder="000000" type="text">
+</div>
+</div>
+<!-- Company -->
+<div class="col-span-1">
+<label class="block text-label-caps font-label-caps text-on-surface-variant mb-2" for="empresa">Empresa</label>
+<select class="w-full h-12 px-4 rounded-lg border border-outline-variant bg-surface-bright focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none text-body-md" id="empresa">
+<option disabled="" selected="" value="">Selecione...</option>
+<option value="matriz">Unidade Matriz</option>
+<option value="filial_sp">Filial São Paulo</option>
+<option value="filial_rj">Filial Rio de Janeiro</option>
+</select>
+</div>
+<!-- Full Name -->
+<div class="col-span-1 md:col-span-2">
+<label class="block text-label-caps font-label-caps text-on-surface-variant mb-2" for="nome">Nome Completo</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-lg">person</span>
+<input class="w-full h-12 pl-11 pr-4 rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none text-body-md placeholder:text-outline/50" id="nome" placeholder="Ex: João Silva Sauro" type="text">
+</div>
+</div>
+<!-- Role -->
+<div class="col-span-1 md:col-span-2">
+<label class="block text-label-caps font-label-caps text-on-surface-variant mb-2" for="cargo">Cargo / Nível de Acesso</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-lg">work</span>
+<input class="w-full h-12 pl-11 pr-4 rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none text-body-md placeholder:text-outline/50" id="cargo" placeholder="Ex: Analista de Sistemas Pleno" type="text">
+</div>
+</div>
+<!-- Password -->
+<div class="col-span-1 md:col-span-2">
+<label class="block text-label-caps font-label-caps text-on-surface-variant mb-2" for="senha">Senha de Acesso</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-lg">lock</span>
+<input class="w-full h-12 pl-11 pr-12 rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none text-body-md placeholder:text-outline/50" id="senha" placeholder="••••••••" type="password">
+<button class="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-surface-container rounded-full transition-colors text-outline" onclick="togglePassword()" type="button">
+<span class="material-symbols-outlined text-lg" id="pw-icon">visibility</span>
+</button>
+</div>
+</div><div class="col-span-1 md:col-span-2">
+<label class="block text-label-caps font-label-caps text-on-surface-variant mb-2" for="confirmar-senha">Confirmar Senha</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-lg">lock</span>
+<input class="w-full h-12 pl-11 pr-12 rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none text-body-md placeholder:text-outline/50" id="confirmar-senha" placeholder="••••••••" type="password">
+<button class="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-surface-container rounded-full transition-colors text-outline" onclick="toggleConfirmPassword()" type="button">
+<span class="material-symbols-outlined text-lg" id="confirm-pw-icon">visibility</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-outline-variant/30 mt-8">
+<button class="flex-1 h-12 bg-primary text-on-primary font-button text-button rounded-lg hover:bg-primary-container transition-all active:scale-[0.98] shadow-sm" type="submit">
+                            Cadastrar
+                        </button>
+<button class="flex-1 h-12 bg-transparent border border-outline-variant text-on-surface font-button text-button rounded-lg hover:bg-surface-container-low transition-all active:scale-[0.98]" type="button">
+                            Cancelar
+                        </button>
+</div>
+</form>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Visible on Mobile Only) -->
+<footer class="md:hidden fixed bottom-0 left-0 w-full z-50 bg-surface-container-lowest flex justify-around items-center px-6 pb-6 pt-2 shadow-lg rounded-t-xl">
+<button class="flex flex-col items-center justify-center text-on-surface-variant p-3 hover:bg-surface-container-high transition-all active:scale-95 duration-150">
+<span class="material-symbols-outlined">home</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full p-3 hover:bg-surface-container-high transition-all active:scale-95 duration-150">
+<span class="material-symbols-outlined">person_add</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant p-3 hover:bg-surface-container-high transition-all active:scale-95 duration-150">
+<span class="material-symbols-outlined">group</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant p-3 hover:bg-surface-container-high transition-all active:scale-95 duration-150">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</footer>
+<script>
+        function togglePassword() {
+            const pwInput = document.getElementById('senha');
+            const pwIcon = document.getElementById('pw-icon');
+            if (pwInput.type === 'password') {
+                pwInput.type = 'text';
+                pwIcon.innerText = 'visibility_off';
+            } else {
+                pwInput.type = 'password';
+                pwIcon.innerText = 'visibility';
+            }
+        }
+
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+            
+            // Interaction feedback
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-lg">progress_activity</span>';
+            
+            setTimeout(() => {
+                alert('Solicitação processada com sucesso!');
+                btn.disabled = false;
+                btn.innerText = originalText;
+            }, 1500);
+        });
+    </script>
+
+
+</body></html>
