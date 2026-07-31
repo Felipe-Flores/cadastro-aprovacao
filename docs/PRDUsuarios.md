@@ -68,24 +68,24 @@ Hoje a rota `/usuarios` (`frontend/src/pages/UsersManagement.tsx`) exibe a lista
 
 ### Task 4 — Implementar busca por matrícula (modo Alterar)
 
-- [ ] No mount da página, carregar a lista de usuários com `api.get('/usuarios')` e guardar em estado `usuarios: UserData[]` (interface com `id`, `matricula`, `nome`, `empresa`, `cargo`); tratar `401` fazendo logout + navigate `/login`
-- [ ] Renderizar no modo "alterar" o campo **Matrícula** (ícone `Badge`/similar) ao lado de um botão **"Buscar"**, permitindo disparar a busca também pela tecla Enter
-- [ ] Implementar `handleBuscar`: normalizar a matrícula digitada para maiúsculo e localizar na lista carregada (comparação case-insensitive)
-- [ ] Se não encontrar: exibir mensagem inline em vermelho **"Usuário inexistente"** abaixo do campo de matrícula e manter os demais campos ocultos
-- [ ] Se encontrar: limpar a mensagem de erro, preencher `formData` com `matricula`, `nome`, `empresa`, `cargo` do usuário (senha vazia), guardar `editingUserId` e revelar os demais campos do formulário
-- [ ] Limpar a mensagem "Usuário inexistente" quando o usuário alterar o valor do campo de matrícula
-- [ ] Exibir estado de carregamento no botão "Buscar" enquanto a lista inicial ainda não foi carregada (desabilitar busca)
+- [v] No mount da página, carregar a lista de usuários com `api.get('/usuarios')` e guardar em estado `usuarios: UserData[]` (interface com `id`, `matricula`, `nome`, `empresa`, `cargo`); tratar `401` fazendo logout + navigate `/login`
+- [v] Renderizar no modo "alterar" o campo **Matrícula** (ícone `Badge`/similar) ao lado de um botão **"Buscar"**, permitindo disparar a busca também pela tecla Enter
+- [v] Implementar `handleBuscar`: normalizar a matrícula digitada para maiúsculo e localizar na lista carregada (comparação case-insensitive)
+- [v] Se não encontrar: exibir mensagem inline em vermelho **"Usuário inexistente"** abaixo do campo de matrícula e manter os demais campos ocultos
+- [v] Se encontrar: limpar a mensagem de erro, preencher `formData` com `matricula`, `nome`, `empresa`, `cargo` do usuário (senha vazia), guardar `editingUserId` e revelar os demais campos do formulário
+- [v] Limpar a mensagem "Usuário inexistente" quando o usuário alterar o valor do campo de matrícula
+- [v] Exibir estado de carregamento no botão "Buscar" enquanto a lista inicial ainda não foi carregada (desabilitar busca)
 
 ### Task 5 — Implementar formulário completo (campos e validações)
 
-- [ ] Campo **Matrícula** + **Empresa** na mesma linha do grid (2 colunas em `md`); Empresa como select com placeholder "Selecione..." e opções: TELEMONT, VIVO, ONDACOM, ABILITY, ICOMON
-- [ ] Campo **Nome Completo** (`md:col-span-2`) com ícone de pessoa
-- [ ] Campo **Cargo / Nível de Acesso** (`md:col-span-2`) como select com opções: Solicitante (`solicitante`), Gestor (`gestor`), Gestor Master (`gestor-master`)
-- [ ] Campo **Senha de Acesso** (`md:col-span-2`) com ícone de cadeado e botão olho (`Eye`/`EyeOff`) para exibir/ocultar; obrigatória apenas no modo "novo"; no modo "alterar" usar placeholder "Deixe em branco para manter"
-- [ ] Campo **Confirmar Senha** (`md:col-span-2`) com o mesmo padrão de olho; validação client-side: se preenchida e diferente de `senha`, exibir erro inline "As senhas não coincidem" e bloquear o submit
-- [ ] Aplicar em todos os inputs o estilo do mockup: altura `h-12`, borda `outline-variant`, `rounded-lg`, foco com borda e ring `primary`, labels em small caps (`text-xs font-semibold uppercase tracking-wider text-on-surface-variant`)
-- [ ] Normalizar `matricula` e `nome` para maiúsculo no `onChange` (padrão já existente no projeto)
-- [ ] Validar senha com mínimo de 4 caracteres (quando preenchida) exibindo toast de erro
+- [v] Campo **Matrícula** + **Empresa** na mesma linha do grid (2 colunas em `md`); Empresa como select com placeholder "Selecione..." e opções: TELEMONT, VIVO, ONDACOM, ABILITY, ICOMON
+- [v] Campo **Nome Completo** (`md:col-span-2`) com ícone de pessoa
+- [v] Campo **Cargo / Nível de Acesso** (`md:col-span-2`) como select com opções: Solicitante (`solicitante`), Gestor (`gestor`), Gestor Master (`gestor-master`)
+- [v] Campo **Senha de Acesso** (`md:col-span-2`) com ícone de cadeado e botão olho (`Eye`/`EyeOff`) para exibir/ocultar; obrigatória apenas no modo "novo"; no modo "alterar" usar placeholder "Deixe em branco para manter"
+- [v] Campo **Confirmar Senha** (`md:col-span-2`) com o mesmo padrão de olho; validação client-side: se preenchida e diferente de `senha`, exibir erro inline "As senhas não coincidem" e bloquear o submit
+- [v] Aplicar em todos os inputs o estilo do mockup: altura `h-12`, borda `outline-variant`, `rounded-lg`, foco com borda e ring `primary`, labels em small caps (`text-xs font-semibold uppercase tracking-wider text-on-surface-variant`)
+- [v] Normalizar `matricula` e `nome` para maiúsculo no `onChange` (padrão já existente no projeto)
+- [v] Validar senha com mínimo de 4 caracteres (quando preenchida) exibindo toast de erro
 
 ### Task 6 — Implementar ações de submit e cancelar
 
