@@ -11,7 +11,7 @@ Hoje a rota `/usuarios` (`frontend/src/pages/UsersManagement.tsx`) exibe a lista
 - Se a matrícula não existir, exibir a mensagem **"Usuário inexistente"**.
 - Se existir, revelar o formulário preenchido com os dados do usuário e permitir a alteração (botão vira **"Atualizar"**).
 - A busca por matrícula será feita **no frontend**, filtrando a lista retornada por `GET /usuarios` (não haverá alteração no backend).
-- A tela substituirá o modal atual: os botões "Novo Usuário" e "Editar" da listagem passam a navegar para ela.
+- A rota `/usuarios` exibe **diretamente o formulário** (sem listagem, sem botão "Novo Usuário" e sem campo de busca); a rota antiga `/usuarios/cadastro` redireciona para `/usuarios`.
 
 ### Layout de referência
 
@@ -117,3 +117,15 @@ Hoje a rota `/usuarios` (`frontend/src/pages/UsersManagement.tsx`) exibe a lista
 
 - [v] Rodar `npm run build` em `frontend/` (typecheck + build Vite) sem erros
 - [v] Rodar `npm run dev` e validar manualmente: acesso bloqueado para não gestor-master; cadastro de novo usuário; alteração com matrícula existente (formulário preenchido + atualização); alteração com matrícula inexistente (mensagem "Usuário inexistente"); validação de senhas divergentes; senha em branco no modo alterar mantém a atual; navegação "Novo Usuário" e lápis da listagem; toast de sucesso ao voltar para a lista
+
+### Task 11 — Tornar o formulário a home de usuários
+
+> Ajuste de escopo: ao entrar em `/usuarios`, o formulário deve ser exibido diretamente. A listagem, o botão "Novo Usuário" e o campo de busca da listagem deixam de existir.
+
+- [v] Editar `frontend/src/App.tsx`: rota `/usuarios` passa a renderizar `UserForm`; rota `/usuarios/cadastro` passa a redirecionar para `/usuarios` (`<Navigate to="/usuarios" replace />`); remover import de `UsersManagement`
+- [v] Remover o arquivo `frontend/src/pages/UsersManagement.tsx` (listagem, busca e modal de exclusão deixam de existir)
+- [v] Editar `frontend/src/pages/UserForm.tsx`: botão "Voltar" da navbar passa a navegar para `/dashboard`
+- [v] Editar `frontend/src/pages/UserForm.tsx`: botão "Cancelar" passa a navegar para `/dashboard`
+- [v] Editar `frontend/src/pages/UserForm.tsx`: no submit do modo "novo", em vez de navegar, exibir toast "Usuário cadastrado com sucesso!" na própria tela, incluir o usuário criado na lista local e limpar o formulário
+- [v] Editar `frontend/src/pages/UserForm.tsx`: no submit do modo "alterar", em vez de navegar, exibir toast "Usuário atualizado com sucesso!" na própria tela e atualizar o usuário na lista local
+- [v] Rodar `npm run build` em `frontend/` sem erros após as mudanças

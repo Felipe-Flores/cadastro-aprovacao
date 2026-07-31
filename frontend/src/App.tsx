@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext'; 
 import { Login } from './pages/Login'; 
 import { Dashboard } from './pages/Dashboard';
-import { UsersManagement } from './pages/UsersManagement';
 import { UserForm } from './pages/UserForm';
 import { Analytics } from './pages/Analytics';
 
@@ -19,8 +18,8 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/usuarios" element={<UsersManagement />} />
-          <Route path="/usuarios/cadastro" element={<UserForm />} />
+          <Route path="/usuarios" element={<UserForm />} />
+          <Route path="/usuarios/cadastro" element={<Navigate to="/usuarios" replace />} />
           <Route path="/analytics" element={<Analytics />} />
           
           {/* Se o usuário tentar acessar qualquer outra rota, mandamos para o login */}

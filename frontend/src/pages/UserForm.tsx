@@ -206,19 +206,16 @@ export const UserForm: React.FC = () => {
     setIsSaving(true);
     try {
       if (acao === 'novo') {
-        await api.post('/usuarios', {
+        const response = await api.post('/usuarios', {
           matricula: formData.matricula,
           nome: formData.nome,
           empresa: formData.empresa,
           cargo: formData.cargo,
           senha: formData.senha,
         });
-        navigate('/usuarios', {
-          state: {
-            toastMessage: 'Usuário cadastrado com sucesso!',
-            toastType: 'success',
-          },
-        });
+        setUsuarios((prev) => [...prev, response.data]);
+        showToast('Usuário cadastrado com sucesso!', 'success');
+        limparFormulario();
         return;
       }
 
@@ -232,13 +229,9 @@ export const UserForm: React.FC = () => {
         if (formData.senha) {
           payload.senha = formData.senha;
         }
-        await api.patch(`/usuarios/${editingUserId}`, payload);
-        navigate('/usuarios', {
-          state: {
-            toastMessage: 'Usuário atualizado com sucesso!',
-            toastType: 'success',
-          },
-        });
+        const response = await api.patch(`/usuarios/${editingUserId}`, payload);
+        setUsuarios((prev) => prev.map((u) => (u.id === editingUserId ? response.data : u)));
+        showToast('Usuário atualizado com sucesso!', 'success');
         return;
       }
     } catch (error: any) {
@@ -282,7 +275,7 @@ export const UserForm: React.FC = () => {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => navigate('/usuarios')}
+              onClick={() => navigate('/dashboard')}
               className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500 flex items-center gap-2 text-sm font-medium"
             >
               <ArrowLeft size={18} />
@@ -592,7 +585,7 @@ export const UserForm: React.FC = () => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => navigate('/usuarios')}
+                    onClick={() => navigate('/dashboard')}
                     disabled={isSaving}
                     className="flex-1 h-12 bg-transparent border border-outline-variant text-on-surface font-semibold text-sm rounded-lg hover:bg-surface-container-low transition-all active:scale-[0.98]"
                   >
