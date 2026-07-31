@@ -7,7 +7,6 @@ import {
   LogOut,
   UserPlus,
   Shield,
-  Info,
   Badge,
   User,
   Lock,
@@ -343,10 +342,6 @@ export const UserForm: React.FC = () => {
                   símbolos.
                 </p>
               </div>
-              <div className="flex items-center gap-2 opacity-60">
-                <Info size={14} />
-                <span className="text-[10px] uppercase font-bold tracking-widest">v2.4.0 Stable</span>
-              </div>
             </div>
           </div>
 
@@ -382,7 +377,7 @@ export const UserForm: React.FC = () => {
                         <input
                           id="matricula-busca"
                           type="text"
-                          placeholder="000000"
+                          placeholder="Ex: A0099999, 80999999"
                           value={formData.matricula}
                           onChange={(e) => handleChange('matricula', e.target.value)}
                           onKeyDown={(e) => {
