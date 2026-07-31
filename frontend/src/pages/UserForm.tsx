@@ -1,5 +1,5 @@
-import React, { useEffect, useContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useContext, useState, useRef } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import api from '../api/api';
 import {
@@ -45,14 +45,21 @@ const selectClass =
 export const UserForm: React.FC = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const matriculaParam = searchParams.get('matricula');
+  const autoSearchDone = useRef(false);
 
-  const [acao, setAcao] = useState<'novo' | 'alterar'>('novo');
-  const [formData, setFormData] = useState(initialFormData);
+  const [acao, setAcao] = useState<'novo' | 'alterar'>(matriculaParam ? 'alterar' : 'novo');
+  const [formData, setFormData] = useState({
+    ...initialFormData,
+    matricula: matriculaParam ? matriculaParam.toUpperCase() : '',
+  });
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
   const [usuarioEncontrado, setUsuarioEncontrado] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [usuarios, setUsuarios] = useState<UserData[]>([]);
   const [loadingUsuarios, setLoadingUsuarios] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [showSenha, setShowSenha] = useState(false);
   const [showConfirmarSenha, setShowConfirmarSenha] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -99,10 +106,10 @@ export const UserForm: React.FC = () => {
     limparFormulario();
   };
 
-  const handleBuscar = () => {
+  const handleBuscar = (matriculaOverride?: string) => {
     if (loadingUsuarios) return;
 
-    const matriculaNorm = formData.matricula.trim().toUpperCase();
+    const matriculaNorm = (matriculaOverride ?? formData.matricula).trim().toUpperCase();
     if (!matriculaNorm) {
       setErrors((prev) => ({ ...prev, matricula: 'Usuário inexistente' }));
       setUsuarioEncontrado(false);
@@ -115,6 +122,7 @@ export const UserForm: React.FC = () => {
     );
 
     if (!encontrado) {
+      setFormData((prev) => ({ ...prev, matricula: matriculaNorm }));
       setErrors((prev) => ({ ...prev, matricula: 'Usuário inexistente' }));
       setUsuarioEncontrado(false);
       setEditingUserId(null);
@@ -137,6 +145,15 @@ export const UserForm: React.FC = () => {
     setEditingUserId(encontrado.id);
     setUsuarioEncontrado(true);
   };
+
+  useEffect(() => {
+    if (!loadingUsuarios && matriculaParam && !autoSearchDone.current) {
+      autoSearchDone.current = true;
+      setAcao('alterar');
+      handleBuscar(matriculaParam);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadingUsuarios, matriculaParam, usuarios]);
 
   const handleChange = (field: keyof typeof initialFormData, value: string) => {
     let nextValue = value;
@@ -166,7 +183,14 @@ export const UserForm: React.FC = () => {
   const senhasNaoCoincidem =
     formData.confirmarSenha.length > 0 && formData.confirmarSenha !== formData.senha;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const extractErrorMessage = (error: any): string => {
+    const msg = error.response?.data?.message;
+    if (Array.isArray(msg)) return msg.join(', ');
+    if (typeof msg === 'string') return msg;
+    return 'Erro ao salvar usuário.';
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (senhasNaoCoincidem) {
@@ -179,7 +203,54 @@ export const UserForm: React.FC = () => {
       return;
     }
 
-    // Submit completo será implementado na Task 6
+    setIsSaving(true);
+    try {
+      if (acao === 'novo') {
+        await api.post('/usuarios', {
+          matricula: formData.matricula,
+          nome: formData.nome,
+          empresa: formData.empresa,
+          cargo: formData.cargo,
+          senha: formData.senha,
+        });
+        navigate('/usuarios', {
+          state: {
+            toastMessage: 'Usuário cadastrado com sucesso!',
+            toastType: 'success',
+          },
+        });
+        return;
+      }
+
+      if (acao === 'alterar' && editingUserId) {
+        const payload: Record<string, string> = {
+          matricula: formData.matricula,
+          nome: formData.nome,
+          empresa: formData.empresa,
+          cargo: formData.cargo,
+        };
+        if (formData.senha) {
+          payload.senha = formData.senha;
+        }
+        await api.patch(`/usuarios/${editingUserId}`, payload);
+        navigate('/usuarios', {
+          state: {
+            toastMessage: 'Usuário atualizado com sucesso!',
+            toastType: 'success',
+          },
+        });
+        return;
+      }
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        logout();
+        navigate('/login');
+        return;
+      }
+      showToast(extractErrorMessage(error), 'error');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const mostrarFormularioCompleto = acao === 'novo' || (acao === 'alterar' && usuarioEncontrado);
@@ -332,7 +403,7 @@ export const UserForm: React.FC = () => {
                       </div>
                       <button
                         type="button"
-                        onClick={handleBuscar}
+                        onClick={() => handleBuscar()}
                         disabled={loadingUsuarios}
                         className="h-12 px-6 bg-primary text-on-primary font-semibold text-sm rounded-lg hover:bg-primary-container transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
                       >
@@ -508,14 +579,21 @@ export const UserForm: React.FC = () => {
                 <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-outline-variant/30 mt-8">
                   <button
                     type="submit"
-                    disabled={senhasNaoCoincidem}
-                    className="flex-1 h-12 bg-primary text-on-primary font-semibold text-sm rounded-lg hover:bg-primary-container transition-all active:scale-[0.98] shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                    disabled={senhasNaoCoincidem || isSaving}
+                    className="flex-1 h-12 bg-primary text-on-primary font-semibold text-sm rounded-lg hover:bg-primary-container transition-all active:scale-[0.98] shadow-sm disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    {acao === 'novo' ? 'Cadastrar' : 'Atualizar'}
+                    {isSaving ? (
+                      <Loader2 size={18} className="animate-spin" />
+                    ) : acao === 'novo' ? (
+                      'Cadastrar'
+                    ) : (
+                      'Atualizar'
+                    )}
                   </button>
                   <button
                     type="button"
                     onClick={() => navigate('/usuarios')}
+                    disabled={isSaving}
                     className="flex-1 h-12 bg-transparent border border-outline-variant text-on-surface font-semibold text-sm rounded-lg hover:bg-surface-container-low transition-all active:scale-[0.98]"
                   >
                     Cancelar

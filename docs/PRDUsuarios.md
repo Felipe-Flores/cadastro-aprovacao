@@ -89,21 +89,21 @@ Hoje a rota `/usuarios` (`frontend/src/pages/UsersManagement.tsx`) exibe a lista
 
 ### Task 6 — Implementar ações de submit e cancelar
 
-- [ ] Implementar `handleSubmit` no modo "novo": `api.post('/usuarios', { matricula, nome, empresa, cargo, senha })`; em sucesso, navegar para `/usuarios` com `state: { toastMessage: 'Usuário cadastrado com sucesso!', toastType: 'success' }`
-- [ ] Implementar `handleSubmit` no modo "alterar": montar payload sem `senha`/`confirmarSenha` quando senha estiver vazia e chamar `api.patch('/usuarios/' + editingUserId, payload)`; em sucesso, navegar para `/usuarios` com `state: { toastMessage: 'Usuário atualizado com sucesso!', toastType: 'success' }`
-- [ ] Em erro de API: extrair `error.response?.data?.message` (tratando array) e exibir toast de erro na própria tela
-- [ ] Botão submit: estilo primário do mockup (`h-12 bg-primary text-on-primary rounded-lg`), exibir spinner (`Loader2` com `animate-spin`) e desabilitar durante o salvamento; texto "Cadastrar" (novo) ou "Atualizar" (alterar)
-- [ ] Botão **Cancelar**: estilo secundário (borda `outline-variant`, fundo transparente), navega para `/usuarios`
-- [ ] Implementar sistema de toast no topo direito (mesmo padrão visual de `UsersManagement.tsx`: verde para sucesso, vermelho para erro, auto-dismiss em 3s)
+- [v] Implementar `handleSubmit` no modo "novo": `api.post('/usuarios', { matricula, nome, empresa, cargo, senha })`; em sucesso, navegar para `/usuarios` com `state: { toastMessage: 'Usuário cadastrado com sucesso!', toastType: 'success' }`
+- [v] Implementar `handleSubmit` no modo "alterar": montar payload sem `senha`/`confirmarSenha` quando senha estiver vazia e chamar `api.patch('/usuarios/' + editingUserId, payload)`; em sucesso, navegar para `/usuarios` com `state: { toastMessage: 'Usuário atualizado com sucesso!', toastType: 'success' }`
+- [v] Em erro de API: extrair `error.response?.data?.message` (tratando array) e exibir toast de erro na própria tela
+- [v] Botão submit: estilo primário do mockup (`h-12 bg-primary text-on-primary rounded-lg`), exibir spinner (`Loader2` com `animate-spin`) e desabilitar durante o salvamento; texto "Cadastrar" (novo) ou "Atualizar" (alterar)
+- [v] Botão **Cancelar**: estilo secundário (borda `outline-variant`, fundo transparente), navega para `/usuarios`
+- [v] Implementar sistema de toast no topo direito (mesmo padrão visual de `UsersManagement.tsx`: verde para sucesso, vermelho para erro, auto-dismiss em 3s)
 
 ### Task 7 — Suporte a edição via query param
 
-- [ ] Ler `searchParams` da URL (`useSearchParams` do react-router-dom): se existir `?matricula=X`, inicializar `acao = 'alterar'` com o campo preenchido
-- [ ] Executar a busca automaticamente após o carregamento da lista de usuários quando o query param estiver presente
+- [v] Ler `searchParams` da URL (`useSearchParams` do react-router-dom): se existir `?matricula=X`, inicializar `acao = 'alterar'` com o campo preenchido
+- [v] Executar a busca automaticamente após o carregamento da lista de usuários quando o query param estiver presente
 
 ### Task 8 — Registrar rota
 
-- [ ] Editar `frontend/src/App.tsx`: importar `UserForm` e adicionar `<Route path="/usuarios/cadastro" element={<UserForm />} />`
+- [v] Editar `frontend/src/App.tsx`: importar `UserForm` e adicionar `<Route path="/usuarios/cadastro" element={<UserForm />} />`
 
 ### Task 9 — Integrar listagem à nova tela (remover modal)
 
