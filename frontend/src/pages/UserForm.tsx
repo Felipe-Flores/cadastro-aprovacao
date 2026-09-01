@@ -489,6 +489,7 @@ export const UserForm: React.FC = () => {
                       >
                         <option value="solicitante">Solicitante</option>
                         <option value="gestor">Gestor</option>
+                        <option value="gestor-parceiro">Gestor Parceiro</option>
                         <option value="gestor-master">Gestor Master</option>
                       </select>
                     </div>

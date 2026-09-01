@@ -17,6 +17,6 @@ export class RolesGuard implements CanActivate {
     const { user } = context.switchToHttp().getRequest();
     
     // Se o cargo do usuário estiver na lista de cargos permitidos, ele passa
-    return requiredRoles.some((role) => user?.cargo?.includes(role));
+    return requiredRoles.includes(user?.cargo);
   }
 }

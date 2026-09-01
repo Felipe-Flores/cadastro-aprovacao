@@ -67,9 +67,9 @@ export const Analytics: React.FC = () => {
     fetchAprovacoes();
   }, [navigate]);
 
-  // Proteção de Cargo: Solicitantes não podem ver esta tela
+  // Proteção de Cargo: Solicitantes e Gestores Parceiros não podem ver esta tela
   useEffect(() => {
-    if (user && user.cargo === 'solicitante') {
+    if (user && (user.cargo === 'solicitante' || user.cargo === 'gestor-parceiro')) {
       navigate('/dashboard');
     }
   }, [user, navigate]);

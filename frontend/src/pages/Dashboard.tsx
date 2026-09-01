@@ -342,6 +342,12 @@ export const Dashboard: React.FC = () => {
         return (item.status === 'Pendente' && item.dentro_time_slot === 'Não') || isOwner;
       }
 
+      if (user?.cargo === 'gestor-parceiro') {
+        // Gestor Parceiro vê todas as atividades (qualquer status) da sua empresa,
+        // já filtradas pelo backend
+        return true;
+      }
+
       // Regra para Gestores comuns e Solicitantes
       return (user?.cargo === 'gestor' && item.status === 'Pendente') || isOwner;
     });

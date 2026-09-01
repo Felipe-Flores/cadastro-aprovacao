@@ -97,6 +97,9 @@ export class AprovacoesService {
     if (user.cargo === 'solicitante') {
       // Solicitante vê todas as suas próprias solicitações (histórico completo)
       query.where('aprovacao.matricula_solicitante = :matricula', { matricula: user.matricula });
+    } else if (user.cargo === 'gestor-parceiro') {
+      // Gestor Parceiro vê todas as atividades dos solicitantes da mesma empresa
+      query.where('aprovacao.empresa = :empresa', { empresa: user.empresa });
     } else {
       // Gestores e Gestores Master recebem todos os registros para permitir a exportação completa.
       // O filtro para exibir apenas 'Pendentes' na tela será aplicado no Frontend.
@@ -111,9 +114,9 @@ export class AprovacoesService {
       throw new NotFoundException(`Pedido de aprovação com ID ${id} não encontrado`);
     }
 
-    // Segurança: Impede que um solicitante aprove/reprove atividades via API direta
-    if (user.cargo === 'solicitante') {
-      throw new ForbiddenException('Solicitantes não possuem permissão para alterar o status de atividades.');
+    // Segurança: Impede que um solicitante ou gestor parceiro (somente leitura) aprove/reprove atividades via API direta
+    if (user.cargo === 'solicitante' || user.cargo === 'gestor-parceiro') {
+      throw new ForbiddenException('Você não possui permissão para alterar o status de atividades.');
     }
 
     // Nova Regra: Se estiver fora do slot ('Não'), apenas gestor-master pode aprovar/reprovar
