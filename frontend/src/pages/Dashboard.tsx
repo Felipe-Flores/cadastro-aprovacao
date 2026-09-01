@@ -754,6 +754,7 @@ export const Dashboard: React.FC = () => {
                     <option value="Falta de controle">Falta de controle</option>
                     <option value="Atividade injetada vencida">Atividade injetada vencida</option>
                     <option value="Erro Sistemico">Erro Sistemico</option>
+                    <option value="Erro de Cadastro">Erro de Cadastro</option>
                     <option value="Ordem Voltou para o Bucket">Roterizador moveu para o bucket</option>
                   </select>
                 </div>
