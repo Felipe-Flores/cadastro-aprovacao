@@ -62,7 +62,7 @@ const UF_TIMEZONES: Record<string, string> = {
 
 const calculateWithinSlot = (slot: string, uf: string, detalheAtividade?: string) => {
   if (!slot || !uf) return 'Não';
-  if (slot === 'SLA') return 'Não';
+  if (slot === 'SLA') return detalheAtividade === 'Defeito' ? 'Sim' : 'Não';
   try {
     const timezone = UF_TIMEZONES[uf] || 'America/Sao_Paulo';
     const now = new Date();
@@ -718,6 +718,7 @@ export const Dashboard: React.FC = () => {
                       <>
                         <option value="08:30-12:30">08:30-12:30</option>
                         <option value="12:30-18:00">12:30-18:00</option>
+                        <option value="SLA">SLA</option>
                       </>
                     ) : (
                       <>
