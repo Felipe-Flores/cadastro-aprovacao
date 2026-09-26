@@ -402,7 +402,6 @@ export const Dashboard: React.FC = () => {
     <AppLayout
       title="Atividades"
       icon={ClipboardList}
-      width="full"
       actions={
         <>
           {(user?.cargo === 'gestor' || user?.cargo === 'gestor-master') && (

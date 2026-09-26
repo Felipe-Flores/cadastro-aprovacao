@@ -612,7 +612,6 @@ export const GestaoAcesso: React.FC = () => {
     <AppLayout
       title="Gestão de Acesso"
       icon={KeyRound}
-      width="full"
       actions={
         <>
           <button

@@ -244,29 +244,29 @@ export const UserForm: React.FC = () => {
   return (
     <AppLayout title="Cadastro de Usuários" icon={UserPlus}>
       <Toast toast={toast} />
-        <div className="w-full max-w-5xl mx-auto flex flex-col md:flex-row bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200">
-          <div className="w-full md:w-5/12 bg-slate-50 border-b md:border-b-0 md:border-r border-slate-200 p-8 md:p-12 flex flex-col justify-between">
+        <div className="w-full flex flex-col md:flex-row bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200">
+          <div className="w-full md:w-5/12 bg-gradient-to-br from-blue-950 via-indigo-900 to-blue-800 text-white p-8 md:p-12 flex flex-col justify-between">
 
             <div>
-              <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mb-8">
+              <div className="w-12 h-12 bg-white/10 text-white rounded-xl flex items-center justify-center mb-8">
                 <UserPlus size={24} aria-hidden="true" />
               </div>
-              <h2 className="text-xl font-bold text-slate-900 mb-4">Gestão de Identidade</h2>
-              <p className="text-base text-slate-600 leading-relaxed">
+              <h2 className="text-xl font-bold text-white mb-4">Gestão de Identidade</h2>
+              <p className="text-base text-blue-100 leading-relaxed">
                 Gerencie os acessos do sistema de forma centralizada. Adicione novos colaboradores ou
                 atualize permissões existentes com segurança.
               </p>
             </div>
 
             <div className="mt-12 hidden md:block">
-              <div className="p-4 rounded-xl border border-slate-200 bg-white">
+              <div className="p-4 rounded-xl border border-white/20 bg-white/10">
                 <div className="flex items-center gap-3 mb-2">
-                  <Shield size={16} className="text-indigo-600" aria-hidden="true" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  <Shield size={16} className="text-blue-200" aria-hidden="true" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-blue-200">
                     Dica de Segurança
                   </span>
                 </div>
-                <p className="text-sm text-slate-600">
+                <p className="text-sm text-blue-50">
                   Senhas devem conter pelo menos 8 caracteres, incluindo letras maiúsculas, números e
                   símbolos.
                 </p>

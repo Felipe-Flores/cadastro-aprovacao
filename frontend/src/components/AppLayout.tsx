@@ -34,8 +34,6 @@ interface AppLayoutProps {
   back?: { to: string; label: string };
   // Ações à direita do título (botões primários da página)
   actions?: React.ReactNode;
-  // Largura do conteúdo: 'full' para tabelas largas, 'contained' para painéis
-  width?: 'full' | 'contained';
   children: React.ReactNode;
 }
 
@@ -45,12 +43,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   icon: Icon,
   back,
   actions,
-  width = 'contained',
   children,
 }) => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
-  const containerWidth = width === 'full' ? 'max-w-full' : 'max-w-7xl';
 
   const handleLogout = () => {
     logout();
@@ -62,7 +58,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <header className="bg-white border-b border-slate-200 shadow-sm">
-        <div className={`${containerWidth} mx-auto px-6 flex flex-wrap items-center gap-x-6`}>
+        <div className="px-6 lg:px-10 flex flex-wrap items-center gap-x-6">
           <Link to="/dashboard" className="flex items-center gap-2 py-4 text-indigo-600 shrink-0">
             <LayoutDashboard size={24} strokeWidth={2.5} aria-hidden="true" />
             <span className="text-xl font-bold text-slate-900 tracking-tight">Portal de Aprovação</span>
@@ -119,7 +115,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         </div>
       </header>
 
-      <main className={`flex-1 ${containerWidth} w-full mx-auto p-6`}>
+      <main className="flex-1 w-full px-6 lg:px-10 py-8">
         <div className="flex flex-col gap-6">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
