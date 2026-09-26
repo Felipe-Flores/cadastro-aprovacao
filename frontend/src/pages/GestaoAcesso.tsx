@@ -127,7 +127,7 @@ const renderStatus = (item: SolicitacaoAcesso) => (
 const COLUNA_ID: Coluna = {
   label: 'ID',
   key: 'id',
-  render: (item) => <span className="font-mono font-bold text-indigo-600">#{formatId(item.id)}</span>,
+  render: (item) => <span className="font-mono font-bold text-indigo-600">{formatId(item.id)}</span>,
 };
 
 const COLUNA_TIPO: Coluna = {
@@ -287,7 +287,7 @@ export const GestaoAcesso: React.FC = () => {
       // Atualiza a linha na fila e no resultado da busca sem recarregar
       setFila((prev) => prev.map((s) => (s.id === item.id ? { ...s, ...atualizada } : s)));
       setResultadoBusca((prev) => prev && prev.map((s) => (s.id === item.id ? { ...s, ...atualizada } : s)));
-      showToast(`Solicitação #${formatId(item.id)} iniciada!`, 'success');
+      showToast(`Solicitação ${formatId(item.id)} iniciada!`, 'success');
       abrirDetalhes({ ...item, ...atualizada });
     } catch (error: any) {
       handleApiError(error, 'Erro ao iniciar a solicitação.');
@@ -396,7 +396,7 @@ export const GestaoAcesso: React.FC = () => {
 
       showToast(
         atualizada.status === 'Concluído'
-          ? `Solicitação #${formatId(atualizada.id)} concluída!`
+          ? `Solicitação ${formatId(atualizada.id)} concluída!`
           : 'Tratativa salva com sucesso!',
         'success',
       );
@@ -948,7 +948,7 @@ export const GestaoAcesso: React.FC = () => {
           <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50">
             <div>
               <h3 id="titulo-detalhes-solicitacao" className="text-xl font-bold text-slate-800">{TIPO_LABEL[selected.tipo]}</h3>
-              <p className="text-xs text-slate-500 font-mono mt-0.5">ID: #{formatId(selected.id)}</p>
+              <p className="text-xs text-slate-500 font-mono mt-0.5">ID: {formatId(selected.id)}</p>
             </div>
             <button type="button" onClick={closeDetalhes} aria-label="Fechar" className="text-slate-500 hover:text-slate-600 transition-colors p-1 hover:bg-white rounded-full">
               <X size={24} />
