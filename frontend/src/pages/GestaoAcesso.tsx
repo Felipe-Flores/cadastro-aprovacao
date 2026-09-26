@@ -27,6 +27,7 @@ import {
   ClipboardCheck,
 } from 'lucide-react';
 import { TagInput } from '../components/TagInput';
+import { Select } from '../components/Select';
 import { formatId, TIPO_LABEL, TipoSolicitacao, StatusSolicitacao, ESTADOS, CIDADES_POR_ESTADO, STATUS } from '../constants/gestaoAcesso';
 
 interface HistoricoItem {
@@ -770,8 +771,8 @@ export const GestaoAcesso: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 flex-1">
                   <div className="space-y-1">
                     <label className={labelClass}>Estado</label>
-                    <select
-                      className={`${inputClass} appearance-none`}
+                    <Select
+                      className={`${inputClass}`}
                       value={filtros.estado}
                       onChange={(e) => setFiltros({ ...filtros, estado: e.target.value, cidade: '' })}
                     >
@@ -779,12 +780,12 @@ export const GestaoAcesso: React.FC = () => {
                       {ESTADOS.map((uf) => (
                         <option key={uf} value={uf}>{uf}</option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
                   <div className="space-y-1">
                     <label className={labelClass}>Cidade</label>
-                    <select
-                      className={`${inputClass} appearance-none`}
+                    <Select
+                      className={`${inputClass}`}
                       value={filtros.cidade}
                       onChange={(e) => setFiltros({ ...filtros, cidade: e.target.value })}
                     >
@@ -792,7 +793,7 @@ export const GestaoAcesso: React.FC = () => {
                       {cidadesFiltro.map((cidade) => (
                         <option key={cidade} value={cidade}>{cidade}</option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
                   <div className="space-y-1">
                     <label className={labelClass}>Solicitante</label>
@@ -806,8 +807,8 @@ export const GestaoAcesso: React.FC = () => {
                   </div>
                   <div className="space-y-1">
                     <label className={labelClass}>Status</label>
-                    <select
-                      className={`${inputClass} appearance-none`}
+                    <Select
+                      className={`${inputClass}`}
                       value={filtros.status}
                       onChange={(e) => setFiltros({ ...filtros, status: e.target.value })}
                     >
@@ -815,7 +816,7 @@ export const GestaoAcesso: React.FC = () => {
                       {STATUS.filter((s) => s !== 'Concluído').map((s) => (
                         <option key={s} value={s}>{s}</option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
                 </div>
                 <button
@@ -879,9 +880,9 @@ export const GestaoAcesso: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className={labelClass}>Estado</label>
-                  <select
+                  <Select
                     required
-                    className={`${inputClass} appearance-none`}
+                    className={`${inputClass}`}
                     value={formData.estado}
                     onChange={(e) => handleEstadoChange(e.target.value)}
                   >
@@ -889,14 +890,14 @@ export const GestaoAcesso: React.FC = () => {
                     {ESTADOS.map((uf) => (
                       <option key={uf} value={uf}>{uf}</option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
                 <div className="space-y-1">
                   <label className={labelClass}>Cidade</label>
-                  <select
+                  <Select
                     required
                     disabled={!formData.estado}
-                    className={`${inputClass} appearance-none disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed`}
+                    className={`${inputClass} disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed`}
                     value={formData.cidade}
                     onChange={(e) => setFormData({ ...formData, cidade: e.target.value })}
                   >
@@ -904,7 +905,7 @@ export const GestaoAcesso: React.FC = () => {
                     {(CIDADES_POR_ESTADO[formData.estado] ?? []).map((cidade) => (
                       <option key={cidade} value={cidade}>{cidade}</option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
                 <div className="space-y-1">
                   <label className={labelClass}>{formularioAberto === 'reset_senha' ? 'Matrícula do Técnico' : 'Matrícula'}</label>
@@ -1113,15 +1114,15 @@ export const GestaoAcesso: React.FC = () => {
                     </div>
                     <div className="md:col-span-2 space-y-1">
                       <label className={labelClass}>Alterar Status</label>
-                      <select
-                        className={`${inputClass} appearance-none`}
+                      <Select
+                        className={`${inputClass}`}
                         value={tratativa.status}
                         onChange={(e) => setTratativa({ ...tratativa, status: e.target.value as typeof tratativa.status })}
                       >
                         <option value="">Manter como "{selected.status}"</option>
                         {selected.status !== 'Pendente' && <option value="Pendente">Pendente (liberação parcial)</option>}
                         <option value="Concluído">Concluído</option>
-                      </select>
+                      </Select>
                     </div>
                     {tratativa.status === 'Concluído' && (
                       <div className="md:col-span-2 space-y-1">

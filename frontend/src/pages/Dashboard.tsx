@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import api from '../api/api';
+import { Select } from '../components/Select';
 import * as XLSX from 'xlsx';
 import { 
   LogOut, 
@@ -670,22 +671,22 @@ export const Dashboard: React.FC = () => {
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Detalhe da Atividade</label>
-                  <select
+                  <Select
                     required
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all appearance-none"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                     value={formData.detalhe_atividade}
                     onChange={(e) => setFormData({...formData, detalhe_atividade: e.target.value})}
                   >
                     <option value="" disabled>Selecione o tipo</option>
                     <option value="Defeito">Defeito</option>
                     <option value="Instalação/ME">Instalação/ME</option>
-                  </select>
+                  </Select>
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">UF</label>
-                  <select 
+                  <Select 
                     required
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all appearance-none"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                     value={formData.uf} 
                     onChange={(e) => setFormData({...formData, uf: e.target.value})}
                   >
@@ -693,7 +694,7 @@ export const Dashboard: React.FC = () => {
                     <option value="MS">MS</option>
                     <option value="MT">MT</option>
                     <option value="RO">RO</option>
-                  </select>
+                  </Select>
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Data Execução</label>
@@ -722,9 +723,9 @@ export const Dashboard: React.FC = () => {
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Time Slot</label>
-                  <select 
+                  <Select 
                     required
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all appearance-none"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                     value={formData.time_slot} 
                     onChange={(e) => setFormData({...formData, time_slot: e.target.value})}
                   >
@@ -744,7 +745,7 @@ export const Dashboard: React.FC = () => {
                         <option value="SLA">SLA</option>
                       </>
                     )}
-                  </select>
+                  </Select>
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Atividade está Dentro dos 30min?</label>
@@ -759,9 +760,9 @@ export const Dashboard: React.FC = () => {
                 </div>
                 <div className="md:col-span-2 space-y-1">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Motivo</label>
-                  <select 
+                  <Select 
                     required
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all appearance-none"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                     value={formData.motivo} 
                     onChange={(e) => setFormData({...formData, motivo: e.target.value})}
                   >
@@ -772,7 +773,7 @@ export const Dashboard: React.FC = () => {
                     <option value="Erro Sistemico">Erro Sistemico</option>
                     <option value="Erro de Cadastro">Erro de Cadastro</option>
                     <option value="Ordem Voltou para o Bucket">Roterizador moveu para o bucket</option>
-                  </select>
+                  </Select>
                 </div>
                 <div className="md:col-span-2 space-y-1">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Observação (Opcional)</label>
