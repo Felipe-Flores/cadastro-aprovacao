@@ -3,19 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import api from '../api/api';
 import { Select } from '../components/Select';
+import { AppLayout } from '../components/AppLayout';
+import { getInitials } from '../utils/getInitials';
 import * as XLSX from 'xlsx';
 import { 
-  LogOut, 
-  LayoutDashboard, 
   ClipboardList, 
   CheckCircle2, 
-  BarChart3,
   XCircle, 
   Clock,
   User as UserIcon,
   Plus,
   X,
-  Users,
   AlertTriangle,
   Loader2,
   Search,
@@ -23,8 +21,6 @@ import {
   Check,
   AlertCircle,
   Download,
-  FileSpreadsheet,
-  KeyRound,
 } from 'lucide-react';
 
 interface Aprovacao {
@@ -60,6 +56,13 @@ const UF_TIMEZONES: Record<string, string> = {
   'RO': 'America/Porto_Velho',
   'RR': 'America/Boa_Vista',
   // Todos os demais estados seguem o Horário de Brasília (UTC-3)
+};
+
+// Data de hoje no fuso local (YYYY-MM-DD); toISOString usaria UTC e viraria o dia após as 21h
+const getLocalToday = () => {
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 };
 
 const calculateWithinSlot = (slot: string, uf: string, detalheAtividade?: string) => {
@@ -194,19 +197,6 @@ export const Dashboard: React.FC = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const getInitials = (name: string | undefined) => { // Permite que 'name' seja undefined
-    if (!name) return '?';
-    const names = name.trim().split(' ');
-    return names.length >= 2 
-      ? (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase()
-      : names[0].charAt(0).toUpperCase();
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
     const [year, month, day] = dateString.split('-');
@@ -275,7 +265,7 @@ export const Dashboard: React.FC = () => {
     e.preventDefault();
     
     // Validação de data futura
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalToday();
     if (formData.data_execucao > today) {
       showToast('A data de execução não pode ser uma data futura.', 'error');
       return;
@@ -355,15 +345,20 @@ export const Dashboard: React.FC = () => {
     });
   }, [searchedAndSortedAprovacoes, user]);
 
+  // 7 colunas de dados + "Ações" para gestores
+  const totalColunas = user?.cargo === 'gestor' || user?.cargo === 'gestor-master' ? 8 : 7;
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (isModalOpen) closeModal();
-        if (isDetailsModalOpen) closeDetailsModal();
-        if (isRejectModalOpen) {
-          setIsRejectModalOpen(false);
-          setItemToReject(null);
-        }
+      if (e.key !== 'Escape') return;
+      // Fecha apenas o modal do topo (a confirmação de reprovação fica acima dos demais)
+      if (isRejectModalOpen) {
+        setIsRejectModalOpen(false);
+        setItemToReject(null);
+      } else if (isDetailsModalOpen) {
+        closeDetailsModal();
+      } else if (isModalOpen) {
+        closeModal();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -415,72 +410,34 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      {/* Navbar Superior */}
-      <nav className="bg-white border-b border-slate-200 px-6 py-4 shadow-sm">
-        <div className="max-w-full mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2 text-indigo-600">
-            <LayoutDashboard size={24} strokeWidth={2.5} />
-            <span className="text-xl font-bold text-slate-900 tracking-tight">Portal de Aprovação</span>
-          </div>
-          
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-4 border-r border-slate-200 pr-6">
-              {/* Gestão de Acesso: disponível para todos os cargos */}
-              <button
-                onClick={() => navigate('/gestao-acesso')}
-                className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors font-medium text-sm"
-              >
-                <KeyRound size={18} />
-                <span className="hidden sm:inline">Gestão de Acesso</span>
-              </button>
-              {(user?.cargo === 'gestor' || user?.cargo === 'gestor-master') && (
-                <button
-                  onClick={() => navigate('/analytics')}
-                  className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors font-medium text-sm"
-                >
-                  <BarChart3 size={18} />
-                  <span>Indicadores</span>
-                </button>
-              )}
-              {user?.cargo === 'gestor-master' && (
-                <button
-                  onClick={() => navigate('/usuarios')}
-                  className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors font-medium text-sm"
-                >
-                  <Users size={18} />
-                  <span>Usuários</span>
-                </button>
-              )}
-            </div>
-            {user && (
-              <div className="flex items-center gap-3 px-4 py-1.5 bg-slate-100 rounded-full">
-                <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                  {getInitials(user?.nome)}
-                </div>
-                <div className="hidden sm:block">
-                  <p className="text-sm uppercase font-bold text-slate-900 leading-none">{user?.nome}</p>
-                  <p className="text-[10px] uppercase font-semibold text-slate-500 tracking-wider mt-1">{user?.cargo}</p>
-                </div>
-              </div>
-            )}
-            
-            <button 
-              onClick={handleLogout}
-              className="flex items-center gap-2 text-slate-500 hover:text-red-600 transition-colors font-medium text-sm"
+    <AppLayout
+      title="Atividades"
+      icon={ClipboardList}
+      width="full"
+      actions={
+        <>
+          {(user?.cargo === 'gestor' || user?.cargo === 'gestor-master') && (
+            <button
+              onClick={exportToExcel}
+              className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-100"
+              title="Exportar para Excel"
             >
-              <LogOut size={18} />
-              <span className="hidden sm:inline">Sair</span>
+              <Download size={18} />
+              <span className="hidden sm:inline">Exportar Excel</span>
             </button>
-          </div>
-        </div>
-      </nav>
-
-      {/* Conteúdo Principal */}
-      <main className="flex-1 max-w-full w-full mx-auto p-6">
-        <div className="flex flex-col gap-6">
-          {/* Barra de Busca e Título */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          )}
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-100"
+          >
+            <Plus size={18} />
+            Nova Atividade
+          </button>
+        </>
+      }
+    >
+          {/* Busca e contador */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input 
@@ -491,37 +448,9 @@ export const Dashboard: React.FC = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <div className="flex gap-2">
-              {(user?.cargo === 'gestor' || user?.cargo === 'gestor-master') && (
-                <button 
-                  onClick={exportToExcel}
-                  className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-100"
-                  title="Exportar para Excel"
-                >
-                  <Download size={18} />
-                  <span className="hidden sm:inline">Exportar Excel</span>
-                </button>
-              )}
-              <button 
-                onClick={() => setIsModalOpen(true)}
-                className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-100"
-              >
-                <Plus size={18} />
-                Nova Atividade
-              </button>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-              <ClipboardList className="text-indigo-500" />
-              Lista de Atividades
-            </h2>
-            <div className="flex items-center gap-4">
-              <span className="hidden md:inline px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-500 shadow-sm">
-                Encontrados: {filteredAndSortedAprovacoes.length}
-              </span>
-            </div>
+            <span className="px-3 py-1 w-fit bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-500 shadow-sm">
+              Encontrados: {filteredAndSortedAprovacoes.length}
+            </span>
           </div>
 
           {/* Tabela */}
@@ -557,9 +486,9 @@ export const Dashboard: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {loading ? (
-                    <tr><td colSpan={8} className="px-6 py-10 text-center text-slate-400">Carregando dados...</td></tr>
+                    <tr><td colSpan={totalColunas} className="px-6 py-10 text-center text-slate-400">Carregando dados...</td></tr>
                   ) : filteredAndSortedAprovacoes.length === 0 ? (
-                    <tr><td colSpan={8} className="px-6 py-10 text-center text-slate-400">Nenhum registro encontrado.</td></tr>
+                    <tr><td colSpan={totalColunas} className="px-6 py-10 text-center text-slate-400">Nenhum registro encontrado.</td></tr>
                   ) : filteredAndSortedAprovacoes.map((item) => (
                     <tr 
                       key={item.id} 
@@ -629,8 +558,6 @@ export const Dashboard: React.FC = () => {
               </table>
             </div>
           </div>
-        </div>
-      </main>
 
       {/* Modal de Nova Atividade */}
       {isModalOpen && (
@@ -700,7 +627,7 @@ export const Dashboard: React.FC = () => {
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Data Execução</label>
                   <input
                     type="date" required
-                    max={new Date().toISOString().split('T')[0]}
+                    max={getLocalToday()}
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                     value={formData.data_execucao} onChange={(e) => setFormData({...formData, data_execucao: e.target.value})}
                   />
@@ -1018,6 +945,6 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </AppLayout>
   );
 };

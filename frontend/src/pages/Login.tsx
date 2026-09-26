@@ -40,9 +40,9 @@ export const Login: React.FC = () => {
           </div>
         </div>
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
             Portal de Gestão
-          </h2>
+          </h1>
           <p className="text-slate-500 mt-2">Entre com suas credenciais de acesso</p>
         </div>
 

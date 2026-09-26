@@ -1,10 +1,9 @@
 import React, { useEffect, useContext, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { AppLayout } from '../components/AppLayout';
 import { AuthContext } from '../contexts/AuthContext';
 import api from '../api/api';
 import {
-  ArrowLeft,
-  LogOut,
   UserPlus,
   Shield,
   Badge,
@@ -248,7 +247,7 @@ export const UserForm: React.FC = () => {
   const mostrarFormularioCompleto = acao === 'novo' || (acao === 'alterar' && usuarioEncontrado);
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col font-sans">
+    <AppLayout title="Cadastro de Usuários" icon={UserPlus}>
       {toast && (
         <div
           className={`fixed top-6 right-6 z-[100] flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl border animate-in slide-in-from-right-full duration-300 ${
@@ -269,51 +268,7 @@ export const UserForm: React.FC = () => {
           <span className="text-sm font-semibold tracking-tight">{toast.message}</span>
         </div>
       )}
-
-      <nav className="bg-white border-b border-slate-200 px-6 py-4 shadow-sm">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500 flex items-center gap-2 text-sm font-medium"
-            >
-              <ArrowLeft size={18} />
-              Voltar
-            </button>
-            <div className="h-6 w-px bg-slate-200 mx-2 hidden sm:block"></div>
-            <div className="flex items-center gap-2 text-primary">
-              <UserPlus size={24} strokeWidth={2.5} />
-              <span className="text-xl font-bold text-on-surface tracking-tight">
-                Cadastro de Usuários
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-6">
-            {user && (
-              <div className="hidden sm:block text-right">
-                <p className="text-sm font-bold text-on-surface leading-none">{user?.nome}</p>
-                <p className="text-[10px] uppercase font-semibold text-on-surface-variant tracking-wider mt-1">
-                  {user?.cargo}
-                </p>
-              </div>
-            )}
-            <button
-              onClick={() => {
-                logout();
-                navigate('/login');
-              }}
-              className="text-slate-500 hover:text-red-600 font-medium text-sm flex items-center gap-2 transition-colors"
-            >
-              <LogOut size={18} />
-              <span className="hidden sm:inline">Sair</span>
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      <main className="flex-grow flex items-center justify-center p-6 md:p-12">
-        <div className="w-full max-w-5xl flex flex-col md:flex-row bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_10px_20px_rgba(0,0,0,0.05)] border border-outline-variant">
+        <div className="w-full max-w-5xl mx-auto flex flex-col md:flex-row bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_10px_20px_rgba(0,0,0,0.05)] border border-outline-variant">
           <div className="w-full md:w-5/12 bg-primary p-8 md:p-12 flex flex-col justify-between relative overflow-hidden text-on-primary">
             <div className="absolute top-0 right-0 w-64 h-64 bg-secondary-container opacity-20 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-10 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl"></div>
@@ -592,7 +547,6 @@ export const UserForm: React.FC = () => {
             </form>
           </div>
         </div>
-      </main>
-    </div>
+    </AppLayout>
   );
 };

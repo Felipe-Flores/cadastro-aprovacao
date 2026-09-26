@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useContext, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { AppLayout } from '../components/AppLayout';
 import { AuthContext } from '../contexts/AuthContext';
 import api from '../api/api';
 import {
-  LogOut,
-  ArrowLeft,
   KeyRound,
   UserPlus,
   RotateCcw,
@@ -215,14 +214,6 @@ export const GestaoAcesso: React.FC = () => {
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
-  };
-
-  const getInitials = (name: string | undefined) => {
-    if (!name) return '?';
-    const names = name.trim().split(' ');
-    return names.length >= 2
-      ? (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase()
-      : names[0].charAt(0).toUpperCase();
   };
 
   const handleLogout = () => {
@@ -627,70 +618,29 @@ export const GestaoAcesso: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      {/* Navbar Superior */}
-      <nav className="bg-white border-b border-slate-200 px-6 py-4 shadow-sm">
-        <div className="max-w-full mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500 flex items-center gap-2 text-sm font-medium"
-            >
-              <ArrowLeft size={18} />
-              Voltar
-            </button>
-            <div className="h-6 w-px bg-slate-200 mx-2"></div>
-            <div className="flex items-center gap-2 text-indigo-600">
-              <KeyRound size={24} strokeWidth={2.5} />
-              <span className="text-xl font-bold text-slate-900 tracking-tight">Gestão de Acesso</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-6">
-            {user && (
-              <div className="flex items-center gap-3 px-4 py-1.5 bg-slate-100 rounded-full">
-                <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                  {getInitials(user?.nome)}
-                </div>
-                <div className="hidden sm:block">
-                  <p className="text-sm uppercase font-bold text-slate-900 leading-none">{user?.nome}</p>
-                  <p className="text-[10px] uppercase font-semibold text-slate-500 tracking-wider mt-1">{user?.cargo}</p>
-                </div>
-              </div>
-            )}
-
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 text-slate-500 hover:text-red-600 transition-colors font-medium text-sm"
-            >
-              <LogOut size={18} />
-              <span className="hidden sm:inline">Sair</span>
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      {/* Conteúdo Principal */}
-      <main className="flex-1 max-w-full w-full mx-auto p-6">
-        <div className="flex flex-col gap-6">
-          {/* Botões de Ação (centralizados) */}
-          <div className="flex flex-col sm:flex-row justify-center gap-3">
-            <button
-              onClick={() => abrirFormulario('acesso')}
-              className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-100"
-            >
-              <UserPlus size={18} />
-              Solicitação de Acesso
-            </button>
-            <button
-              onClick={() => abrirFormulario('reset_senha')}
-              className="flex items-center justify-center gap-2 bg-white hover:bg-slate-100 text-indigo-700 border border-indigo-200 px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm"
-            >
-              <RotateCcw size={18} />
-              Reset de Senha
-            </button>
-          </div>
-
+    <AppLayout
+      title="Gestão de Acesso"
+      icon={KeyRound}
+      width="full"
+      actions={
+        <>
+          <button
+            onClick={() => abrirFormulario('acesso')}
+            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-100"
+          >
+            <UserPlus size={18} />
+            Solicitação de Acesso
+          </button>
+          <button
+            onClick={() => abrirFormulario('reset_senha')}
+            className="flex items-center justify-center gap-2 bg-white hover:bg-slate-100 text-indigo-700 border border-indigo-200 px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm"
+          >
+            <RotateCcw size={18} />
+            Reset de Senha
+          </button>
+        </>
+      }
+    >
           {/* Abas: apenas o Gestor Master possui a Fila de Atendimento */}
           {isGestorMaster && (
             <div className="flex gap-2 border-b border-slate-200">
@@ -710,13 +660,13 @@ export const GestaoAcesso: React.FC = () => {
                 </button>
               ))}
               {/* Link para o painel de indicadores (somente Gestor Master) */}
-              <button
-                onClick={() => navigate('/gestao-acesso/indicadores')}
+              <Link
+                to="/gestao-acesso/indicadores"
                 className="ml-auto mb-1.5 flex items-center gap-2 px-4 py-2 text-sm font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-xl transition-colors"
               >
                 <BarChart3 size={16} />
                 <span className="hidden sm:inline">Painel de Indicadores</span>
-              </button>
+              </Link>
             </div>
           )}
 
@@ -868,8 +818,6 @@ export const GestaoAcesso: React.FC = () => {
               })}
             </>
           )}
-        </div>
-      </main>
 
       {/* Modal de Solicitação de Acesso / Reset de Senha */}
       {formularioAberto && (
@@ -1304,6 +1252,6 @@ export const GestaoAcesso: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </AppLayout>
   );
 };
