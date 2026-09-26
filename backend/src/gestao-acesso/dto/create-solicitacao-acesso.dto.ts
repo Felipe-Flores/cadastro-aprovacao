@@ -34,10 +34,12 @@ export class CreateSolicitacaoAcessoDto {
   @MaxLength(100, { message: 'O e-mail deve ter no máximo 100 caracteres' })
   email?: string;
 
+  // Ordem invertida de propósito: o class-validator lista as mensagens de baixo para cima,
+  // e o frontend exibe a primeira ("obrigatório" deve aparecer antes das demais)
   @ValidateIf((o) => o.tipo === 'acesso')
-  @IsNotEmpty({ message: 'O telefone é obrigatório' })
-  @Matches(/^\d+$/, { message: 'O telefone deve conter apenas números' })
   @MaxLength(20, { message: 'O telefone deve ter no máximo 20 dígitos' })
+  @Matches(/^\d+$/, { message: 'O telefone deve conter apenas números' })
+  @IsNotEmpty({ message: 'O telefone é obrigatório' })
   telefone?: string;
 
   @IsOptional()

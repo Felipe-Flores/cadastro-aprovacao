@@ -166,8 +166,8 @@ Fonte: `docs/documento_de_requisitos.md` e `docs/Brainstorming_gestao_acesso.txt
 
 ### Fase 7 — Verificação
 
-- [ ] `npm run build` em `backend/` e em `frontend/` sem erros
-- [ ] Backend (`npm run start:dev`) + frontend (`npm run dev`) e validação manual:
+- [v] `npm run build` em `backend/` e em `frontend/` sem erros
+- [v] Backend (`npm run start:dev`) + frontend (`npm run dev`) e validação manual:
   - solicitante abre acesso e reset; vê só os próprios; campos normalizados (maiúsculas, trim, telefone numérico)
   - validações: obrigatórios, e-mail inválido, limite de 150 caracteres
   - Gestor Master: fila ordenada (Não Iniciado → Pendente), filtros funcionando, Iniciar abre a modal
@@ -177,7 +177,8 @@ Fonte: `docs/documento_de_requisitos.md` e `docs/Brainstorming_gestao_acesso.txt
   - solicitação concluída: `PATCH /:id/tratativa` retorna **400** e a modal não oferece edição
   - histórico registra cada passo com usuário e horário
   - segurança via API direta (curl/Postman com token de solicitante): `/fila`, `/iniciar` e `/tratativa` retornam **403**; `GET /:id` de outro usuário retorna **403**
-- [ ] Criar as tabelas no banco de produção antes do deploy (Vercel usa `synchronize: false`)
+- [v] Gerar o script de criação das tabelas: `docs/sql/gestao_acesso.sql` (idempotente; schema idêntico ao gerado pelo TypeORM)
+- [ ] Executar `docs/sql/gestao_acesso.sql` no banco de produção antes do deploy (Vercel usa `synchronize: false`)
 
 ---
 
