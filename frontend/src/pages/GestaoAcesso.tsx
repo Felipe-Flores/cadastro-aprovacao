@@ -24,7 +24,9 @@ import {
   Filter,
   Inbox,
   FolderOpen,
+  ClipboardCheck,
 } from 'lucide-react';
+import { TagInput } from '../components/TagInput';
 import { formatId, TIPO_LABEL, TipoSolicitacao, StatusSolicitacao, ESTADOS, CIDADES_POR_ESTADO, STATUS } from '../constants/gestaoAcesso';
 
 interface HistoricoItem {
@@ -162,6 +164,15 @@ const COLUNAS_FILA: Coluna[] = [
 
 const FILTROS_VAZIOS = { estado: '', cidade: '', solicitante: '', status: '' };
 
+const TRATATIVA_VAZIA = {
+  id_chamado: '',
+  responsavel_aprovacao: '',
+  sistemas_tags: [] as string[],
+  observacao_tratativa: '',
+  observacao_final: '',
+  status: '' as '' | 'Pendente' | 'Concluído', // Vazio = mantém o status atual
+};
+
 export const GestaoAcesso: React.FC = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -192,6 +203,10 @@ export const GestaoAcesso: React.FC = () => {
   // Modal de detalhes (somente leitura)
   const [selected, setSelected] = useState<SolicitacaoAcesso | null>(null);
   const [loadingDetalhe, setLoadingDetalhe] = useState(false);
+
+  // Tratativa do Gestor Master (dentro da modal de detalhes)
+  const [tratativa, setTratativa] = useState(TRATATIVA_VAZIA);
+  const [isSavingTratativa, setIsSavingTratativa] = useState(false);
 
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
@@ -314,9 +329,21 @@ export const GestaoAcesso: React.FC = () => {
     setResultadoBusca(null);
   };
 
+  const preencherTratativa = (item: SolicitacaoAcesso) => {
+    setTratativa({
+      id_chamado: item.id_chamado ?? '',
+      responsavel_aprovacao: item.responsavel_aprovacao ?? '',
+      sistemas_tags: item.sistemas_tags ?? [],
+      observacao_tratativa: item.observacao_tratativa ?? '',
+      observacao_final: item.observacao_final ?? '',
+      status: '',
+    });
+  };
+
   const abrirDetalhes = async (item: SolicitacaoAcesso) => {
     // Abre com os dados da linha e completa com o histórico vindo da API
     setSelected(item);
+    preencherTratativa(item);
     setLoadingDetalhe(true);
     try {
       const response = await api.get(`/gestao-acesso/${item.id}`);
@@ -328,7 +355,67 @@ export const GestaoAcesso: React.FC = () => {
     }
   };
 
-  const closeDetalhes = () => setSelected(null);
+  const closeDetalhes = () => {
+    if (isSavingTratativa) return;
+    setSelected(null);
+  };
+
+  // Gestor Master só trata solicitações já iniciadas e ainda não concluídas
+  const podeTratar = !!selected && isGestorMaster && (selected.status === 'Iniciado' || selected.status === 'Pendente');
+
+  const handleSalvarTratativa = async (concluir = false) => {
+    if (!selected) return;
+    const isReset = selected.tipo === 'reset_senha';
+    const novoStatus = concluir ? 'Concluído' : tratativa.status;
+
+    // Regras de conclusão (também validadas no backend)
+    if (novoStatus === 'Concluído' && !isReset && !tratativa.observacao_final.trim()) {
+      showToast('Informe a observação final para concluir a solicitação.', 'error');
+      return;
+    }
+    if (novoStatus === 'Concluído' && isReset && !tratativa.observacao_tratativa.trim()) {
+      showToast('Informe o parecer para concluir o reset de senha.', 'error');
+      return;
+    }
+
+    const payload = isReset
+      ? { observacao_tratativa: tratativa.observacao_tratativa.trim(), ...(novoStatus && { status: novoStatus }) }
+      : {
+          id_chamado: tratativa.id_chamado.trim(),
+          responsavel_aprovacao: tratativa.responsavel_aprovacao.trim(),
+          sistemas_tags: tratativa.sistemas_tags,
+          observacao_tratativa: tratativa.observacao_tratativa.trim(),
+          observacao_final: tratativa.observacao_final.trim(),
+          ...(novoStatus && { status: novoStatus }),
+        };
+
+    setIsSavingTratativa(true);
+    try {
+      await api.patch(`/gestao-acesso/${selected.id}/tratativa`, payload);
+      // Recarrega o detalhe para trazer o histórico atualizado
+      const response = await api.get(`/gestao-acesso/${selected.id}`);
+      const atualizada: SolicitacaoAcesso = response.data;
+      setSelected(atualizada);
+      preencherTratativa(atualizada);
+
+      const atualizarLista = (lista: SolicitacaoAcesso[]) => lista.map((s) => (s.id === atualizada.id ? { ...s, ...atualizada } : s));
+      // Concluída sai da fila de trabalho
+      setFila((prev) => (atualizada.status === 'Concluído' ? prev.filter((s) => s.id !== atualizada.id) : atualizarLista(prev)));
+      setSolicitacoes(atualizarLista);
+      setResultadoBusca((prev) => prev && atualizarLista(prev));
+
+      showToast(
+        atualizada.status === 'Concluído'
+          ? `Solicitação #${formatId(atualizada.id)} concluída!`
+          : 'Tratativa salva com sucesso!',
+        'success',
+      );
+    } catch (error: any) {
+      handleApiError(error, 'Erro ao salvar a tratativa.');
+    } finally {
+      setIsSavingTratativa(false);
+    }
+  };
 
   const abrirFormulario = (tipo: TipoSolicitacao) => {
     // Pré-preenche com os dados do usuário logado (podem ser editados)
@@ -418,7 +505,7 @@ export const GestaoAcesso: React.FC = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selected, formularioAberto, isSaving]);
+  }, [selected, formularioAberto, isSaving, isSavingTratativa]);
 
   const handleSort = (key: keyof SolicitacaoAcesso) => {
     let direction: 'asc' | 'desc' = 'asc';
@@ -909,7 +996,7 @@ export const GestaoAcesso: React.FC = () => {
         </div>
       )}
 
-      {/* Modal de Detalhes da Solicitação (somente leitura) */}
+      {/* Modal de Detalhes da Solicitação (tratativa editável para o Gestor Master) */}
       {selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
@@ -970,8 +1057,112 @@ export const GestaoAcesso: React.FC = () => {
                   </>
                 )}
 
-                {/* Tratativa do Gestor Master */}
-                {(selected.id_chamado || selected.responsavel_aprovacao || selected.sistemas_tags?.length || selected.observacao_tratativa || selected.observacao_final) && (
+                {/* Tratativa do Gestor Master (editável) */}
+                {podeTratar && selected.tipo === 'acesso' && (
+                  <div className="md:col-span-2 border-t border-slate-100 pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <p className="md:col-span-2 text-xs font-bold text-indigo-500 uppercase tracking-wider px-1 flex items-center gap-2">
+                      <ClipboardCheck size={14} />
+                      Tratativa
+                    </p>
+                    <div className="space-y-1">
+                      <label className={labelClass}>ID do Chamado</label>
+                      <input
+                        type="text" maxLength={50} placeholder="Nº do chamado aberto"
+                        className={inputClass}
+                        value={tratativa.id_chamado}
+                        onChange={(e) => setTratativa({ ...tratativa, id_chamado: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className={labelClass}>Responsável pela Aprovação</label>
+                      <input
+                        type="text" maxLength={100} placeholder="Nome de quem aprovou"
+                        className={`${inputClass} uppercase`}
+                        value={tratativa.responsavel_aprovacao}
+                        onChange={(e) => setTratativa({ ...tratativa, responsavel_aprovacao: e.target.value.toUpperCase() })}
+                      />
+                    </div>
+                    <div className="md:col-span-2 space-y-1">
+                      <label className={labelClass}>Sistemas / Solicitações</label>
+                      <TagInput
+                        value={tratativa.sistemas_tags}
+                        onChange={(tags) => setTratativa({ ...tratativa, sistemas_tags: tags })}
+                        placeholder="Digite e pressione Enter. Ex: Sistema: Portal de Material"
+                      />
+                    </div>
+                    <div className="md:col-span-2 space-y-1">
+                      <label className={labelClass}>Observação de Andamento (Opcional)</label>
+                      <textarea
+                        rows={2} maxLength={150}
+                        placeholder="Ex: aguardando liberação do Portal de Material para pedir o Toa Técnico"
+                        className={`${inputClass} resize-none`}
+                        value={tratativa.observacao_tratativa}
+                        onChange={(e) => setTratativa({ ...tratativa, observacao_tratativa: e.target.value })}
+                      />
+                      <div className="text-[10px] text-right text-slate-400 mr-1 font-medium">
+                        {tratativa.observacao_tratativa.length} / 150 caracteres
+                      </div>
+                    </div>
+                    <div className="md:col-span-2 space-y-1">
+                      <label className={labelClass}>Alterar Status</label>
+                      <select
+                        className={`${inputClass} appearance-none`}
+                        value={tratativa.status}
+                        onChange={(e) => setTratativa({ ...tratativa, status: e.target.value as typeof tratativa.status })}
+                      >
+                        <option value="">Manter como "{selected.status}"</option>
+                        {selected.status !== 'Pendente' && <option value="Pendente">Pendente (liberação parcial)</option>}
+                        <option value="Concluído">Concluído</option>
+                      </select>
+                    </div>
+                    {tratativa.status === 'Concluído' && (
+                      <div className="md:col-span-2 space-y-1">
+                        <label className={labelClass}>Observação Final</label>
+                        <textarea
+                          rows={2} maxLength={150} required
+                          placeholder="Resumo final do que foi liberado"
+                          className={`${inputClass} resize-none`}
+                          value={tratativa.observacao_final}
+                          onChange={(e) => setTratativa({ ...tratativa, observacao_final: e.target.value })}
+                        />
+                        <div className="flex justify-between text-[10px] font-medium mx-1">
+                          <span className="text-amber-600">Após concluir, a solicitação não poderá ser reaberta.</span>
+                          <span className="text-slate-400">{tratativa.observacao_final.length} / 150 caracteres</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {podeTratar && selected.tipo === 'reset_senha' && (
+                  <div className="md:col-span-2 border-t border-slate-100 pt-6 space-y-4">
+                    <p className="text-xs font-bold text-indigo-500 uppercase tracking-wider px-1 flex items-center gap-2">
+                      <ClipboardCheck size={14} />
+                      Tratativa
+                    </p>
+                    <div className="flex items-start gap-2 bg-amber-50 border border-amber-100 text-amber-800 p-3 rounded-xl text-sm">
+                      <AlertCircle size={18} className="shrink-0 mt-0.5" />
+                      <p>O reset é realizado no sistema externo; registre aqui apenas o parecer.</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className={labelClass}>Parecer</label>
+                      <textarea
+                        rows={3} maxLength={150}
+                        placeholder="Descreva o que foi feito no sistema externo"
+                        className={`${inputClass} resize-none`}
+                        value={tratativa.observacao_tratativa}
+                        onChange={(e) => setTratativa({ ...tratativa, observacao_tratativa: e.target.value })}
+                      />
+                      <div className="flex justify-between text-[10px] font-medium mx-1">
+                        <span className="text-amber-600">Após concluir, a solicitação não poderá ser reaberta.</span>
+                        <span className="text-slate-400">{tratativa.observacao_tratativa.length} / 150 caracteres</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Tratativa do Gestor Master (somente leitura) */}
+                {!podeTratar && (selected.id_chamado ||selected.responsavel_aprovacao || selected.sistemas_tags?.length || selected.observacao_tratativa || selected.observacao_final) && (
                   <div className="md:col-span-2 border-t border-slate-100 pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <p className="md:col-span-2 text-xs font-bold text-slate-400 uppercase tracking-wider px-1">Tratativa</p>
                     {selected.id_chamado && (
@@ -1052,10 +1243,32 @@ export const GestaoAcesso: React.FC = () => {
             <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
               <button
                 onClick={closeDetalhes}
+                disabled={isSavingTratativa}
                 className="px-6 py-2 bg-white border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-100 transition-all text-sm"
               >
                 Fechar
               </button>
+              {podeTratar && (
+                <button
+                  onClick={() => handleSalvarTratativa(selected.tipo === 'reset_senha')}
+                  disabled={isSavingTratativa}
+                  className="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all text-sm flex items-center gap-2 disabled:bg-indigo-300 disabled:shadow-none"
+                >
+                  {isSavingTratativa ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Salvando...
+                    </>
+                  ) : selected.tipo === 'reset_senha' || tratativa.status === 'Concluído' ? (
+                    <>
+                      <CheckCircle2 size={16} />
+                      Concluir
+                    </>
+                  ) : (
+                    'Salvar'
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>

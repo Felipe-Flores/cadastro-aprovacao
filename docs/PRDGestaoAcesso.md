@@ -155,14 +155,14 @@ Fonte: `docs/documento_de_requisitos.md` e `docs/Brainstorming_gestao_acesso.txt
 
 ### Fase 6 — Frontend: modal de tratativa
 
-- [ ] **Iniciar**: chamar `PATCH /:id/iniciar`, atualizar a linha para `Iniciado` e abrir a modal automaticamente
-- [ ] Cabeçalho da modal: todos os dados enviados pelo solicitante (somente leitura)
-- [ ] **Tipo acesso**: campos ID do Chamado, Responsável pela Aprovação, **Sistemas (tags)**, Observação Final e select de Status (`Pendente` / `Concluído`)
-- [ ] Criar o componente `TagInput` (`frontend/src/components/TagInput.tsx`): adiciona tag com Enter ou vírgula, remove no "x", sem duplicadas
-- [ ] **Tipo reset_senha**: aviso "O reset é realizado no sistema externo; registre aqui apenas o parecer", campo **Parecer** (obrigatório, 150 caracteres, com contador) e botão **Concluir**
-- [ ] Regras na tela: conclusão do acesso exige Observação Final e conclusão do reset exige Parecer; após concluir, a modal fica **somente leitura, sem opção de reabrir**, e o item sai da fila
-- [ ] Seção **Histórico** em timeline (data/hora, usuário, ação, status anterior → novo, descrição), carregada via `GET /:id`
-- [ ] Botões Salvar (com spinner) e Fechar; tratar erros do backend (mensagem em array) com toast
+- [v] **Iniciar**: chamar `PATCH /:id/iniciar`, atualizar a linha para `Iniciado` e abrir a modal automaticamente
+- [v] Cabeçalho da modal: todos os dados enviados pelo solicitante (somente leitura)
+- [v] **Tipo acesso**: campos ID do Chamado, Responsável pela Aprovação, **Sistemas (tags)**, Observação Final e select de Status (`Pendente` / `Concluído`)
+- [v] Criar o componente `TagInput` (`frontend/src/components/TagInput.tsx`): adiciona tag com Enter ou vírgula, remove no "x", sem duplicadas
+- [v] **Tipo reset_senha**: aviso "O reset é realizado no sistema externo; registre aqui apenas o parecer", campo **Parecer** (obrigatório, 150 caracteres, com contador) e botão **Concluir**
+- [v] Regras na tela: conclusão do acesso exige Observação Final e conclusão do reset exige Parecer; após concluir, a modal fica **somente leitura, sem opção de reabrir**, e o item sai da fila
+- [v] Seção **Histórico** em timeline (data/hora, usuário, ação, status anterior → novo, descrição), carregada via `GET /:id`
+- [v] Botões Salvar (com spinner) e Fechar; tratar erros do backend (mensagem em array) com toast
 
 ### Fase 7 — Verificação
 
