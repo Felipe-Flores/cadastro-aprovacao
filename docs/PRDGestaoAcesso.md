@@ -137,12 +137,12 @@ Fonte: `docs/documento_de_requisitos.md` e `docs/Brainstorming_gestao_acesso.txt
 
 ### Fase 4 — Frontend: formulários de abertura
 
-- [v] Modal **Solicitação de Acesso** com os campos Matrícula, Nome, Empresa, E-mail, Telefone, Estado (select), Cidade (select) e Observação (textarea com contador `x/150`), pré-preenchidos com os dados do usuário logado e editáveis
+- [v] Modal **Solicitação de Acesso** com os campos Matrícula, Nome, Empresa, E-mail, Telefone, Estado (select), Cidade (select) e Observação (textarea com contador `x/150`); apenas a Empresa vem sugerida com a do usuário logado (editável)
 - [v] Normalização no `onChange`: maiúsculo em matrícula/nome/empresa; telefone aceita só dígitos (`replace(/\D/g,'')`); `maxLength` em todos os campos conforme o modelo
 - [v] Select **Cidade** dependente do Estado: fica desabilitado até escolher o Estado, lista apenas as cidades de `CIDADES_POR_ESTADO[estado]` e é limpo ao trocar o Estado
 - [v] Validação client-side dos obrigatórios e do formato de e-mail antes do envio
 - [v] Modal **Reset de Senha** com os campos Estado, Cidade, Empresa, Matrícula e Nome (mesmas regras)
-- [v] No **Reset de Senha**, Matrícula e Nome são **do técnico** que terá a senha resetada: abrem em branco (não usam os dados do usuário logado) e aparecem como "Matrícula do Técnico" / "Nome do Técnico" no formulário e nos detalhes, que também exibem "Solicitado por" (quem abriu)
+- [v] Em **ambos os tipos** (Solicitação de Acesso e Reset de Senha) a solicitação é feita **para um terceiro**: Matrícula e Nome são **do técnico** que receberá o acesso/reset e abrem em branco (não usam os dados do usuário logado) e aparecem como "Matrícula do Técnico" / "Nome do Técnico" no formulário e nos detalhes, que também exibem "Solicitado por" (quem abriu)
 - [v] Botões **Enviar** (spinner `Loader2` + desabilitado durante o envio) e **Cancelar** (fecha sem salvar; tecla Esc também fecha)
 - [v] Após enviar: toast de sucesso, fechar a modal e recarregar a tabela
 
