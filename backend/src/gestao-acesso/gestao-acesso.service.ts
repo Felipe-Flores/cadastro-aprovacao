@@ -129,6 +129,25 @@ export class GestaoAcessoService {
     return await query.orderBy('solicitacao.data_criacao', 'DESC').getMany();
   }
 
+  // Base do painel de indicadores: todas as solicitações (inclusive concluídas), só com os campos usados nos agrupamentos
+  async listarIndicadores() {
+    return await this.solicitacoesRepository.find({
+      select: {
+        id: true,
+        tipo: true,
+        status: true,
+        empresa: true,
+        estado: true,
+        cidade: true,
+        matricula_solicitante: true,
+        nome_solicitante: true,
+        data_criacao: true,
+        data_conclusao: true,
+      },
+      order: { data_criacao: 'DESC' },
+    });
+  }
+
   async detalhar(id: number, user: ActiveUser) {
     const solicitacao = await this.solicitacoesRepository.findOne({
       where: { id },

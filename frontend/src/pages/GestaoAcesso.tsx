@@ -25,6 +25,7 @@ import {
   Inbox,
   FolderOpen,
   ClipboardCheck,
+  BarChart3,
 } from 'lucide-react';
 import { TagInput } from '../components/TagInput';
 import { Select } from '../components/Select';
@@ -708,6 +709,14 @@ export const GestaoAcesso: React.FC = () => {
                   {tab.label}
                 </button>
               ))}
+              {/* Link para o painel de indicadores (somente Gestor Master) */}
+              <button
+                onClick={() => navigate('/gestao-acesso/indicadores')}
+                className="ml-auto mb-1.5 flex items-center gap-2 px-4 py-2 text-sm font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-xl transition-colors"
+              >
+                <BarChart3 size={16} />
+                <span className="hidden sm:inline">Painel de Indicadores</span>
+              </button>
             </div>
           )}
 

@@ -183,6 +183,17 @@ Fonte: `docs/documento_de_requisitos.md` e `docs/Brainstorming_gestao_acesso.txt
 
 ---
 
+### Fase 8 — Painel de Indicadores de Acesso
+
+> Decisões: "por motivo" = **tipo do pedido** (Solicitação de Acesso x Reset de Senha), pois o módulo não possui campo motivo; painel visível **somente para o Gestor Master**.
+
+- [v] Backend: `GET /gestao-acesso/indicadores` (`@Roles('gestor-master')`) retornando todas as solicitações, inclusive concluídas, apenas com os campos usados nos agrupamentos (tipo, status, empresa, estado, cidade, solicitante, datas)
+- [v] Frontend: link **"Painel de Indicadores"** na tela de Gestão de Acesso (ao lado das abas, só para Gestor Master) e rota `/gestao-acesso/indicadores` (demais cargos são redirecionados)
+- [v] Filtros em uma linha: período (data de abertura de/até), empresa e tipo do pedido, com "Limpar filtros"
+- [v] Cards: Total de Pedidos, Não Iniciados, Em Andamento (Iniciado + Pendente), Concluídos (% do total) e Tempo Médio de Conclusão
+- [v] Painéis **Por Tipo do Pedido**, **Por Empresa** e **Por Solicitante**: barras horizontais ordenadas (cor única, valor e % ao lado, detalhe no hover; top 10 em empresa/solicitante) + tabela com Total, Acesso, Reset, Não Iniciado, Em Andamento, Concluído e % Concluído
+- [v] Validação: rota bloqueada para solicitante/gestor (403) e sem token (401); filtros, estado vazio e redirecionamento testados no navegador
+
 ## 3. Decisões tomadas
 
 1. **Estado RO incluído** para comportar Ji-Paraná.

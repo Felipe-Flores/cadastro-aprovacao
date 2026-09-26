@@ -46,7 +46,13 @@ export class GestaoAcessoController {
     return this.gestaoAcessoService.buscar(termo);
   }
 
-  // Declarada depois de /minhas, /fila e /busca para não capturar essas rotas
+  @Get('indicadores')
+  @Roles('gestor-master')
+  listarIndicadores() {
+    return this.gestaoAcessoService.listarIndicadores();
+  }
+
+  // Declarada depois de /minhas, /fila, /busca e /indicadores para não capturar essas rotas
   @Get(':id')
   detalhar(@Param('id', ParseIntPipe) id: number, @Request() req: RequestWithUser) {
     return this.gestaoAcessoService.detalhar(id, req.user);
