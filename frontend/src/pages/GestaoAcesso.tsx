@@ -418,11 +418,13 @@ export const GestaoAcesso: React.FC = () => {
   };
 
   const abrirFormulario = (tipo: TipoSolicitacao) => {
-    // Pré-preenche com os dados do usuário logado (podem ser editados)
+    // Acesso: pré-preenche com o usuário logado. Reset: matrícula e nome são do técnico,
+    // informados pelo solicitante (a empresa continua sugerida e pode ser editada)
+    const isReset = tipo === 'reset_senha';
     setFormData({
       ...FORM_VAZIO,
-      matricula: user?.matricula?.toUpperCase() ?? '',
-      nome: user?.nome?.toUpperCase() ?? '',
+      matricula: isReset ? '' : user?.matricula?.toUpperCase() ?? '',
+      nome: isReset ? '' : user?.nome?.toUpperCase() ?? '',
       empresa: user?.empresa?.toUpperCase() ?? '',
     });
     setFormularioAberto(tipo);
@@ -905,7 +907,7 @@ export const GestaoAcesso: React.FC = () => {
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className={labelClass}>Matrícula</label>
+                  <label className={labelClass}>{formularioAberto === 'reset_senha' ? 'Matrícula do Técnico' : 'Matrícula'}</label>
                   <input
                     type="text" required maxLength={20} placeholder="A80xxxx"
                     className={`${inputClass} uppercase`}
@@ -923,9 +925,9 @@ export const GestaoAcesso: React.FC = () => {
                   />
                 </div>
                 <div className="md:col-span-2 space-y-1">
-                  <label className={labelClass}>Nome</label>
+                  <label className={labelClass}>{formularioAberto === 'reset_senha' ? 'Nome do Técnico' : 'Nome'}</label>
                   <input
-                    type="text" required maxLength={100} placeholder="Nome completo"
+                    type="text" required maxLength={100} placeholder={formularioAberto === 'reset_senha' ? 'Nome completo do técnico' : 'Nome completo'}
                     className={`${inputClass} uppercase`}
                     value={formData.nome}
                     onChange={(e) => setFormData({ ...formData, nome: e.target.value.toUpperCase() })}
@@ -1021,15 +1023,21 @@ export const GestaoAcesso: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Dados informados */}
+                {/* Dados informados (no reset, matrícula e nome são do técnico) */}
                 <div className="space-y-1 px-1">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Nome</p>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{selected.tipo === 'reset_senha' ? 'Nome do Técnico' : 'Nome'}</p>
                   <p className="text-slate-700 font-medium">{selected.nome}</p>
                 </div>
                 <div className="space-y-1 px-1">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Matrícula</p>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{selected.tipo === 'reset_senha' ? 'Matrícula do Técnico' : 'Matrícula'}</p>
                   <p className="text-slate-700 font-medium">{selected.matricula}</p>
                 </div>
+                {selected.tipo === 'reset_senha' && (
+                  <div className="md:col-span-2 space-y-1 px-1">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Solicitado por</p>
+                    <p className="text-slate-700 font-medium">{selected.nome_solicitante} ({selected.matricula_solicitante})</p>
+                  </div>
+                )}
                 <div className="space-y-1 px-1">
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Empresa</p>
                   <p className="text-slate-700 font-medium">{selected.empresa}</p>
