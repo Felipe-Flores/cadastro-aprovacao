@@ -147,11 +147,11 @@ Fonte: `docs/documento_de_requisitos.md` e `docs/Brainstorming_gestao_acesso.txt
 
 ### Fase 5 — Frontend: fila do Gestor Master
 
-- [ ] Quando `user.cargo === 'gestor-master'`, renderizar a **Fila de Atendimento** (a tabela "Minhas Solicitações" fica em uma aba secundária)
-- [ ] Colunas: ID, Tipo, Estado, Cidade, Solicitante, Empresa, Status e Ações (botão **Iniciar** quando `Não Iniciado`, **Abrir** nos demais)
-- [ ] Ordenação padrão vinda do backend (`Não Iniciado` → `Pendente` → `Iniciado`) + ordenação por clique no cabeçalho (padrão `sortConfig` do Dashboard)
-- [ ] Barra de filtros: Estado, Cidade (dependente do Estado quando um Estado estiver selecionado), Solicitante (texto) e Status (sem "Concluído"), além do botão "Limpar filtros"
-- [ ] Campo **"Buscar por ID / Nº do chamado"** que consulta `/gestao-acesso/busca` e exibe o resultado (inclusive concluídos) com a opção de abrir em modo leitura
+- [v] Quando `user.cargo === 'gestor-master'`, renderizar a **Fila de Atendimento** (a tabela "Minhas Solicitações" fica em uma aba secundária)
+- [v] Colunas: ID, Tipo, Estado, Cidade, Solicitante, Empresa, Status e Ações (botão **Iniciar** quando `Não Iniciado`, **Abrir** nos demais)
+- [v] Ordenação padrão vinda do backend (`Não Iniciado` → `Pendente` → `Iniciado`) + ordenação por clique no cabeçalho (padrão `sortConfig` do Dashboard)
+- [v] Barra de filtros: Estado, Cidade (dependente do Estado quando um Estado estiver selecionado), Solicitante (texto) e Status (sem "Concluído"), além do botão "Limpar filtros"
+- [v] Campo **"Buscar por ID / Nº do chamado"** que consulta `/gestao-acesso/busca` e exibe o resultado (inclusive concluídos) com a opção de abrir em modo leitura
 
 ### Fase 6 — Frontend: modal de tratativa
 

@@ -20,8 +20,12 @@ import {
   Loader2,
   History,
   Tag,
+  Search,
+  Filter,
+  Inbox,
+  FolderOpen,
 } from 'lucide-react';
-import { formatId, TIPO_LABEL, TipoSolicitacao, StatusSolicitacao, ESTADOS, CIDADES_POR_ESTADO } from '../constants/gestaoAcesso';
+import { formatId, TIPO_LABEL, TipoSolicitacao, StatusSolicitacao, ESTADOS, CIDADES_POR_ESTADO, STATUS } from '../constants/gestaoAcesso';
 
 interface HistoricoItem {
   id: number;
@@ -102,6 +106,62 @@ const getStatusIcon = (status: string) => {
   }
 };
 
+interface Coluna {
+  label: string;
+  key: keyof SolicitacaoAcesso;
+  align?: 'center';
+  render: (item: SolicitacaoAcesso) => React.ReactNode;
+}
+
+const renderStatus = (item: SolicitacaoAcesso) => (
+  <div className={`mx-auto w-fit flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold whitespace-nowrap ${getStatusStyle(item.status)}`}>
+    {getStatusIcon(item.status)}
+    {item.status}
+  </div>
+);
+
+const COLUNA_ID: Coluna = {
+  label: 'ID',
+  key: 'id',
+  render: (item) => <span className="font-mono font-bold text-indigo-600">#{formatId(item.id)}</span>,
+};
+
+const COLUNA_TIPO: Coluna = {
+  label: 'Tipo',
+  key: 'tipo',
+  render: (item) => <span className="font-medium text-slate-700">{TIPO_LABEL[item.tipo]}</span>,
+};
+
+const COLUNAS_MINHAS: Coluna[] = [
+  COLUNA_ID,
+  COLUNA_TIPO,
+  { label: 'Estado', key: 'estado', render: (item) => item.estado },
+  { label: 'Cidade', key: 'cidade', render: (item) => item.cidade },
+  { label: 'Data', key: 'data_criacao', render: (item) => formatDateTime(item.data_criacao) },
+  { label: 'Status', key: 'status', align: 'center', render: renderStatus },
+];
+
+const COLUNAS_FILA: Coluna[] = [
+  COLUNA_ID,
+  COLUNA_TIPO,
+  { label: 'Estado', key: 'estado', render: (item) => item.estado },
+  { label: 'Cidade', key: 'cidade', render: (item) => item.cidade },
+  {
+    label: 'Solicitante',
+    key: 'nome_solicitante',
+    render: (item) => (
+      <div>
+        <p className="font-medium text-slate-700">{item.nome_solicitante}</p>
+        <p className="text-xs text-slate-400">{item.matricula_solicitante}</p>
+      </div>
+    ),
+  },
+  { label: 'Empresa', key: 'empresa', render: (item) => item.empresa },
+  { label: 'Status', key: 'status', align: 'center', render: renderStatus },
+];
+
+const FILTROS_VAZIOS = { estado: '', cidade: '', solicitante: '', status: '' };
+
 export const GestaoAcesso: React.FC = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -109,6 +169,20 @@ export const GestaoAcesso: React.FC = () => {
   const [solicitacoes, setSolicitacoes] = useState<SolicitacaoAcesso[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortConfig, setSortConfig] = useState<{ key: keyof SolicitacaoAcesso; direction: 'asc' | 'desc' } | null>(null);
+
+  // Fila de Atendimento (somente Gestor Master)
+  const isGestorMaster = user?.cargo === 'gestor-master';
+  const [aba, setAba] = useState<'fila' | 'minhas'>('minhas');
+  const [fila, setFila] = useState<SolicitacaoAcesso[]>([]);
+  const [loadingFila, setLoadingFila] = useState(true);
+  const [filtros, setFiltros] = useState(FILTROS_VAZIOS);
+  const [solicitanteDebounced, setSolicitanteDebounced] = useState('');
+  const [iniciandoId, setIniciandoId] = useState<number | null>(null);
+
+  // Busca por ID / Nº do chamado (inclui concluídos)
+  const [termoBusca, setTermoBusca] = useState('');
+  const [resultadoBusca, setResultadoBusca] = useState<SolicitacaoAcesso[] | null>(null);
+  const [buscando, setBuscando] = useState(false);
 
   // Formulário de abertura (Solicitação de Acesso / Reset de Senha)
   const [formularioAberto, setFormularioAberto] = useState<TipoSolicitacao | null>(null);
@@ -168,6 +242,77 @@ export const GestaoAcesso: React.FC = () => {
     }
     fetchMinhas();
   }, [navigate]);
+
+  // O usuário é carregado do localStorage após o primeiro render; o Gestor Master abre na fila
+  useEffect(() => {
+    if (isGestorMaster) setAba('fila');
+  }, [isGestorMaster]);
+
+  const fetchFila = async () => {
+    setLoadingFila(true);
+    try {
+      // Envia apenas os filtros preenchidos
+      const params = Object.fromEntries(
+        Object.entries({ ...filtros, solicitante: solicitanteDebounced.trim() }).filter(([, valor]) => valor),
+      );
+      const response = await api.get('/gestao-acesso/fila', { params });
+      setFila(response.data);
+    } catch (error: any) {
+      handleApiError(error, 'Erro ao buscar a fila de atendimento.');
+    } finally {
+      setLoadingFila(false);
+    }
+  };
+
+  // Aguarda o usuário parar de digitar antes de filtrar pelo solicitante
+  useEffect(() => {
+    const timer = setTimeout(() => setSolicitanteDebounced(filtros.solicitante), 400);
+    return () => clearTimeout(timer);
+  }, [filtros.solicitante]);
+
+  useEffect(() => {
+    if (isGestorMaster) fetchFila();
+  }, [isGestorMaster, filtros.estado, filtros.cidade, filtros.status, solicitanteDebounced]);
+
+  const handleIniciar = async (item: SolicitacaoAcesso) => {
+    setIniciandoId(item.id);
+    try {
+      const response = await api.patch(`/gestao-acesso/${item.id}/iniciar`);
+      const atualizada: SolicitacaoAcesso = response.data;
+      // Atualiza a linha na fila e no resultado da busca sem recarregar
+      setFila((prev) => prev.map((s) => (s.id === item.id ? { ...s, ...atualizada } : s)));
+      setResultadoBusca((prev) => prev && prev.map((s) => (s.id === item.id ? { ...s, ...atualizada } : s)));
+      showToast(`Solicitação #${formatId(item.id)} iniciada!`, 'success');
+      abrirDetalhes({ ...item, ...atualizada });
+    } catch (error: any) {
+      handleApiError(error, 'Erro ao iniciar a solicitação.');
+      // Outro gestor pode ter iniciado antes: recarrega a fila
+      fetchFila();
+    } finally {
+      setIniciandoId(null);
+    }
+  };
+
+  const handleBuscar = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const termo = termoBusca.trim().replace(/^#/, '');
+    if (!termo) return;
+
+    setBuscando(true);
+    try {
+      const response = await api.get('/gestao-acesso/busca', { params: { termo } });
+      setResultadoBusca(response.data);
+    } catch (error: any) {
+      handleApiError(error, 'Erro ao buscar a solicitação.');
+    } finally {
+      setBuscando(false);
+    }
+  };
+
+  const limparBusca = () => {
+    setTermoBusca('');
+    setResultadoBusca(null);
+  };
 
   const abrirDetalhes = async (item: SolicitacaoAcesso) => {
     // Abre com os dados da linha e completa com o histórico vindo da API
@@ -254,8 +399,9 @@ export const GestaoAcesso: React.FC = () => {
       await api.post('/gestao-acesso', payload);
       fecharFormulario();
       showToast(isAcesso ? 'Solicitação de acesso enviada com sucesso!' : 'Reset de senha solicitado com sucesso!', 'success');
-      // Recarrega a lista
+      // Recarrega a lista (e a fila, pois o Gestor Master também pode abrir solicitações)
       await fetchMinhas();
+      if (isGestorMaster) fetchFila();
     } catch (error: any) {
       handleApiError(error, 'Erro ao enviar a solicitação.');
     } finally {
@@ -282,17 +428,115 @@ export const GestaoAcesso: React.FC = () => {
     setSortConfig({ key, direction });
   };
 
-  const sortedSolicitacoes = useMemo(() => {
-    if (!sortConfig) return solicitacoes;
+  const ordenar = (lista: SolicitacaoAcesso[]) => {
+    // Sem ordenação escolhida, mantém a ordem da API (fila já vem por prioridade)
+    if (!sortConfig) return lista;
     const { key, direction } = sortConfig;
-    return [...solicitacoes].sort((a, b) => {
+    return [...lista].sort((a, b) => {
       const valueA = a[key] ?? '';
       const valueB = b[key] ?? '';
       if (valueA < valueB) return direction === 'asc' ? -1 : 1;
       if (valueA > valueB) return direction === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [solicitacoes, sortConfig]);
+  };
+
+  const sortedSolicitacoes = useMemo(() => ordenar(solicitacoes), [solicitacoes, sortConfig]);
+  const sortedFila = useMemo(() => ordenar(fila), [fila, sortConfig]);
+
+  const trocarAba = (novaAba: 'fila' | 'minhas') => {
+    setAba(novaAba);
+    setSortConfig(null);
+  };
+
+  // Cidades do filtro: as do estado escolhido ou todas
+  const cidadesFiltro = filtros.estado
+    ? CIDADES_POR_ESTADO[filtros.estado] ?? []
+    : Object.values(CIDADES_POR_ESTADO).flat();
+
+  const temFiltroAtivo = !!(filtros.estado || filtros.cidade || filtros.solicitante || filtros.status);
+
+  const renderTabela = (
+    itens: SolicitacaoAcesso[],
+    colunas: Coluna[],
+    options: { carregando?: boolean; mensagemVazia: string; comAcoes?: boolean },
+  ) => {
+    const totalColunas = colunas.length + (options.comAcoes ? 1 : 0);
+    return (
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-slate-50 border-b border-slate-200">
+              <tr>
+                {colunas.map((col) => (
+                  <th
+                    key={col.key}
+                    onClick={() => handleSort(col.key)}
+                    className={`px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors ${col.align === 'center' ? 'text-center' : ''}`}
+                  >
+                    <div className={`flex items-center gap-1 ${col.align === 'center' ? 'justify-center' : ''}`}>
+                      {col.label}
+                      <ArrowUpDown size={12} className={sortConfig?.key === col.key ? 'text-indigo-600' : 'text-slate-300'} />
+                    </div>
+                  </th>
+                ))}
+                {options.comAcoes && (
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Ações</th>
+                )}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {options.carregando ? (
+                <tr><td colSpan={totalColunas} className="px-6 py-10 text-center text-slate-400">Carregando dados...</td></tr>
+              ) : itens.length === 0 ? (
+                <tr><td colSpan={totalColunas} className="px-6 py-10 text-center text-slate-400">{options.mensagemVazia}</td></tr>
+              ) : itens.map((item) => (
+                <tr
+                  key={item.id}
+                  onClick={() => abrirDetalhes(item)}
+                  className="hover:bg-slate-100/50 even:bg-slate-50/50 transition-colors cursor-pointer"
+                >
+                  {colunas.map((col) => (
+                    <td key={col.key} className="px-6 py-4 text-sm text-slate-600 whitespace-nowrap">
+                      {col.render(item)}
+                    </td>
+                  ))}
+                  {options.comAcoes && (
+                    <td className="px-6 py-4 text-center">
+                      {item.status === 'Não Iniciado' ? (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleIniciar(item);
+                          }}
+                          disabled={iniciandoId === item.id}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-lg transition-all border border-indigo-200 text-xs font-bold shadow-sm disabled:opacity-60"
+                        >
+                          {iniciandoId === item.id ? <Loader2 size={14} className="animate-spin" /> : <PlayCircle size={14} />}
+                          Iniciar
+                        </button>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            abrirDetalhes(item);
+                          }}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-slate-600 hover:bg-slate-100 rounded-lg transition-all border border-slate-200 text-xs font-bold shadow-sm"
+                        >
+                          <FolderOpen size={14} />
+                          Abrir
+                        </button>
+                      )}
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -359,71 +603,175 @@ export const GestaoAcesso: React.FC = () => {
             </button>
           </div>
 
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-              <ClipboardList className="text-indigo-500" />
-              Minhas Solicitações
-            </h2>
-            <span className="hidden md:inline px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-500 shadow-sm">
-              Encontrados: {sortedSolicitacoes.length}
-            </span>
-          </div>
-
-          {/* Tabela */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-slate-50 border-b border-slate-200">
-                  <tr>
-                    {[
-                      { label: 'ID', key: 'id' },
-                      { label: 'Tipo', key: 'tipo' },
-                      { label: 'Estado', key: 'estado' },
-                      { label: 'Cidade', key: 'cidade' },
-                      { label: 'Data', key: 'data_criacao' },
-                      { label: 'Status', key: 'status', align: 'center' },
-                    ].map((col) => (
-                      <th
-                        key={col.key}
-                        onClick={() => handleSort(col.key as keyof SolicitacaoAcesso)}
-                        className={`px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors ${col.align === 'center' ? 'text-center' : ''}`}
-                      >
-                        <div className={`flex items-center gap-1 ${col.align === 'center' ? 'justify-center' : ''}`}>
-                          {col.label}
-                          <ArrowUpDown size={12} className={sortConfig?.key === col.key ? 'text-indigo-600' : 'text-slate-300'} />
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {loading ? (
-                    <tr><td colSpan={6} className="px-6 py-10 text-center text-slate-400">Carregando dados...</td></tr>
-                  ) : sortedSolicitacoes.length === 0 ? (
-                    <tr><td colSpan={6} className="px-6 py-10 text-center text-slate-400">Nenhuma solicitação encontrada.</td></tr>
-                  ) : sortedSolicitacoes.map((item) => (
-                    <tr
-                      key={item.id}
-                      onClick={() => abrirDetalhes(item)}
-                      className="hover:bg-slate-100/50 even:bg-slate-50/50 transition-colors cursor-pointer"
-                    >
-                      <td className="px-6 py-4 text-sm font-mono font-bold text-indigo-600">#{formatId(item.id)}</td>
-                      <td className="px-6 py-4 text-sm font-medium text-slate-700 whitespace-nowrap">{TIPO_LABEL[item.tipo]}</td>
-                      <td className="px-6 py-4 text-sm text-slate-600">{item.estado}</td>
-                      <td className="px-6 py-4 text-sm text-slate-600 whitespace-nowrap">{item.cidade}</td>
-                      <td className="px-6 py-4 text-sm text-slate-600 font-medium whitespace-nowrap">{formatDateTime(item.data_criacao)}</td>
-                      <td className="px-6 py-4">
-                        <div className={`mx-auto w-fit flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold whitespace-nowrap ${getStatusStyle(item.status)}`}>
-                          {getStatusIcon(item.status)}
-                          {item.status}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {/* Abas: apenas o Gestor Master possui a Fila de Atendimento */}
+          {isGestorMaster && (
+            <div className="flex gap-2 border-b border-slate-200">
+              {[
+                { id: 'fila' as const, label: 'Fila de Atendimento', icon: <Inbox size={16} /> },
+                { id: 'minhas' as const, label: 'Minhas Solicitações', icon: <ClipboardList size={16} /> },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => trocarAba(tab.id)}
+                  className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold border-b-2 -mb-px transition-colors ${
+                    aba === tab.id ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  {tab.icon}
+                  {tab.label}
+                </button>
+              ))}
             </div>
-          </div>
+          )}
+
+          {aba === 'fila' && isGestorMaster ? (
+            <>
+              {/* Busca por ID / Nº do chamado (inclui concluídos) */}
+              <form onSubmit={handleBuscar} className="flex flex-col md:flex-row gap-2 md:items-center">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input
+                    type="text"
+                    placeholder="Buscar por ID ou Nº do chamado (inclui concluídos)..."
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm"
+                    value={termoBusca}
+                    onChange={(e) => setTermoBusca(e.target.value)}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={buscando || !termoBusca.trim()}
+                    className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-100 disabled:bg-indigo-300 disabled:shadow-none"
+                  >
+                    {buscando ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
+                    Buscar
+                  </button>
+                  {resultadoBusca && (
+                    <button
+                      type="button"
+                      onClick={limparBusca}
+                      className="px-4 py-2.5 border border-slate-200 bg-white text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all text-sm"
+                    >
+                      Limpar busca
+                    </button>
+                  )}
+                </div>
+              </form>
+
+              {resultadoBusca && (
+                <div className="flex flex-col gap-3">
+                  <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <Search size={18} className="text-indigo-500" />
+                    Resultado da busca
+                  </h3>
+                  {renderTabela(resultadoBusca, COLUNAS_FILA, {
+                    mensagemVazia: 'Nenhuma solicitação encontrada para este ID ou chamado.',
+                    comAcoes: true,
+                  })}
+                </div>
+              )}
+
+              {/* Filtros da fila */}
+              <div className="flex flex-col lg:flex-row lg:items-end gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <div className="flex items-center gap-2 text-slate-400 lg:pb-2.5">
+                  <Filter size={18} />
+                  <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">Filtros</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 flex-1">
+                  <div className="space-y-1">
+                    <label className={labelClass}>Estado</label>
+                    <select
+                      className={`${inputClass} appearance-none`}
+                      value={filtros.estado}
+                      onChange={(e) => setFiltros({ ...filtros, estado: e.target.value, cidade: '' })}
+                    >
+                      <option value="">Todos</option>
+                      {ESTADOS.map((uf) => (
+                        <option key={uf} value={uf}>{uf}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className={labelClass}>Cidade</label>
+                    <select
+                      className={`${inputClass} appearance-none`}
+                      value={filtros.cidade}
+                      onChange={(e) => setFiltros({ ...filtros, cidade: e.target.value })}
+                    >
+                      <option value="">Todas</option>
+                      {cidadesFiltro.map((cidade) => (
+                        <option key={cidade} value={cidade}>{cidade}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className={labelClass}>Solicitante</label>
+                    <input
+                      type="text"
+                      placeholder="Nome ou matrícula"
+                      className={inputClass}
+                      value={filtros.solicitante}
+                      onChange={(e) => setFiltros({ ...filtros, solicitante: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className={labelClass}>Status</label>
+                    <select
+                      className={`${inputClass} appearance-none`}
+                      value={filtros.status}
+                      onChange={(e) => setFiltros({ ...filtros, status: e.target.value })}
+                    >
+                      <option value="">Todos</option>
+                      {STATUS.filter((s) => s !== 'Concluído').map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setFiltros(FILTROS_VAZIOS)}
+                  disabled={!temFiltroAtivo}
+                  className="px-4 py-2.5 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Limpar filtros
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                  <Inbox className="text-indigo-500" />
+                  Fila de Atendimento
+                </h2>
+                <span className="hidden md:inline px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-500 shadow-sm">
+                  Encontrados: {sortedFila.length}
+                </span>
+              </div>
+
+              {renderTabela(sortedFila, COLUNAS_FILA, {
+                carregando: loadingFila,
+                mensagemVazia: temFiltroAtivo ? 'Nenhuma solicitação encontrada com os filtros aplicados.' : 'Nenhuma solicitação na fila.',
+                comAcoes: true,
+              })}
+            </>
+          ) : (
+            <>
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                  <ClipboardList className="text-indigo-500" />
+                  Minhas Solicitações
+                </h2>
+                <span className="hidden md:inline px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-500 shadow-sm">
+                  Encontrados: {sortedSolicitacoes.length}
+                </span>
+              </div>
+
+              {renderTabela(sortedSolicitacoes, COLUNAS_MINHAS, {
+                carregando: loading,
+                mensagemVazia: 'Nenhuma solicitação encontrada.',
+              })}
+            </>
+          )}
         </div>
       </main>
 
