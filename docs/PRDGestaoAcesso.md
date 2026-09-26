@@ -137,13 +137,13 @@ Fonte: `docs/documento_de_requisitos.md` e `docs/Brainstorming_gestao_acesso.txt
 
 ### Fase 4 — Frontend: formulários de abertura
 
-- [ ] Modal **Solicitação de Acesso** com os campos Matrícula, Nome, Empresa, E-mail, Telefone, Estado (select), Cidade (select) e Observação (textarea com contador `x/150`), pré-preenchidos com os dados do usuário logado e editáveis
-- [ ] Normalização no `onChange`: maiúsculo em matrícula/nome/empresa; telefone aceita só dígitos (`replace(/\D/g,'')`); `maxLength` em todos os campos conforme o modelo
-- [ ] Select **Cidade** dependente do Estado: fica desabilitado até escolher o Estado, lista apenas as cidades de `CIDADES_POR_ESTADO[estado]` e é limpo ao trocar o Estado
-- [ ] Validação client-side dos obrigatórios e do formato de e-mail antes do envio
-- [ ] Modal **Reset de Senha** com os campos Estado, Cidade, Empresa, Matrícula e Nome (mesmas regras)
-- [ ] Botões **Enviar** (spinner `Loader2` + desabilitado durante o envio) e **Cancelar** (fecha sem salvar; tecla Esc também fecha)
-- [ ] Após enviar: toast de sucesso, fechar a modal e recarregar a tabela
+- [v] Modal **Solicitação de Acesso** com os campos Matrícula, Nome, Empresa, E-mail, Telefone, Estado (select), Cidade (select) e Observação (textarea com contador `x/150`), pré-preenchidos com os dados do usuário logado e editáveis
+- [v] Normalização no `onChange`: maiúsculo em matrícula/nome/empresa; telefone aceita só dígitos (`replace(/\D/g,'')`); `maxLength` em todos os campos conforme o modelo
+- [v] Select **Cidade** dependente do Estado: fica desabilitado até escolher o Estado, lista apenas as cidades de `CIDADES_POR_ESTADO[estado]` e é limpo ao trocar o Estado
+- [v] Validação client-side dos obrigatórios e do formato de e-mail antes do envio
+- [v] Modal **Reset de Senha** com os campos Estado, Cidade, Empresa, Matrícula e Nome (mesmas regras)
+- [v] Botões **Enviar** (spinner `Loader2` + desabilitado durante o envio) e **Cancelar** (fecha sem salvar; tecla Esc também fecha)
+- [v] Após enviar: toast de sucesso, fechar a modal e recarregar a tabela
 
 ### Fase 5 — Frontend: fila do Gestor Master
 

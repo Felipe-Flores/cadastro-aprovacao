@@ -21,7 +21,7 @@ import {
   History,
   Tag,
 } from 'lucide-react';
-import { formatId, TIPO_LABEL, TipoSolicitacao, StatusSolicitacao } from '../constants/gestaoAcesso';
+import { formatId, TIPO_LABEL, TipoSolicitacao, StatusSolicitacao, ESTADOS, CIDADES_POR_ESTADO } from '../constants/gestaoAcesso';
 
 interface HistoricoItem {
   id: number;
@@ -60,7 +60,24 @@ interface SolicitacaoAcesso {
   historico?: HistoricoItem[];
 }
 
-const formatDateTime = (dateString?: string | null) =>
+const FORM_VAZIO = {
+  matricula: '',
+  nome: '',
+  empresa: '',
+  email: '',
+  telefone: '',
+  estado: '',
+  cidade: '',
+  observacao: '',
+};
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const inputClass =
+  'w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all';
+const labelClass = 'text-xs font-bold text-slate-500 uppercase tracking-wide ml-1';
+
+const formatDateTime =(dateString?: string | null) =>
   dateString ? new Date(dateString).toLocaleString('pt-BR') : 'N/A';
 
 const getStatusStyle = (status: string) => {
@@ -93,8 +110,10 @@ export const GestaoAcesso: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [sortConfig, setSortConfig] = useState<{ key: keyof SolicitacaoAcesso; direction: 'asc' | 'desc' } | null>(null);
 
-  // Formulário de abertura (implementado na Fase 4)
+  // Formulário de abertura (Solicitação de Acesso / Reset de Senha)
   const [formularioAberto, setFormularioAberto] = useState<TipoSolicitacao | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [formData, setFormData] = useState(FORM_VAZIO);
 
   // Modal de detalhes (somente leitura)
   const [selected, setSelected] = useState<SolicitacaoAcesso | null>(null);
@@ -166,16 +185,94 @@ export const GestaoAcesso: React.FC = () => {
 
   const closeDetalhes = () => setSelected(null);
 
+  const abrirFormulario = (tipo: TipoSolicitacao) => {
+    // Pré-preenche com os dados do usuário logado (podem ser editados)
+    setFormData({
+      ...FORM_VAZIO,
+      matricula: user?.matricula?.toUpperCase() ?? '',
+      nome: user?.nome?.toUpperCase() ?? '',
+      empresa: user?.empresa?.toUpperCase() ?? '',
+    });
+    setFormularioAberto(tipo);
+  };
+
+  const fecharFormulario = () => {
+    setFormularioAberto(null);
+    setFormData(FORM_VAZIO);
+  };
+
+  const handleEstadoChange = (estado: string) => {
+    // Ao trocar o estado, a cidade precisa ser escolhida novamente
+    setFormData({ ...formData, estado, cidade: '' });
+  };
+
+  const handleCriarSolicitacao = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formularioAberto) return;
+
+    const dados = {
+      ...formData,
+      matricula: formData.matricula.trim(),
+      nome: formData.nome.trim(),
+      empresa: formData.empresa.trim(),
+      email: formData.email.trim(),
+      observacao: formData.observacao.trim(),
+    };
+
+    if (!dados.matricula || !dados.nome || !dados.empresa || !dados.estado || !dados.cidade) {
+      showToast('Preencha todos os campos obrigatórios.', 'error');
+      return;
+    }
+
+    const isAcesso = formularioAberto === 'acesso';
+    if (isAcesso && !dados.telefone) {
+      showToast('O telefone é obrigatório.', 'error');
+      return;
+    }
+    if (isAcesso && dados.email && !EMAIL_REGEX.test(dados.email)) {
+      showToast('Informe um e-mail válido.', 'error');
+      return;
+    }
+
+    const payload = {
+      tipo: formularioAberto,
+      matricula: dados.matricula,
+      nome: dados.nome,
+      empresa: dados.empresa,
+      estado: dados.estado,
+      cidade: dados.cidade,
+      // Campos exclusivos da Solicitação de Acesso
+      ...(isAcesso && {
+        telefone: dados.telefone,
+        ...(dados.email && { email: dados.email }),
+        ...(dados.observacao && { observacao: dados.observacao }),
+      }),
+    };
+
+    setIsSaving(true);
+    try {
+      await api.post('/gestao-acesso', payload);
+      fecharFormulario();
+      showToast(isAcesso ? 'Solicitação de acesso enviada com sucesso!' : 'Reset de senha solicitado com sucesso!', 'success');
+      // Recarrega a lista
+      await fetchMinhas();
+    } catch (error: any) {
+      handleApiError(error, 'Erro ao enviar a solicitação.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         if (selected) closeDetalhes();
-        if (formularioAberto) setFormularioAberto(null);
+        if (formularioAberto && !isSaving) fecharFormulario();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selected, formularioAberto]);
+  }, [selected, formularioAberto, isSaving]);
 
   const handleSort = (key: keyof SolicitacaoAcesso) => {
     let direction: 'asc' | 'desc' = 'asc';
@@ -247,14 +344,14 @@ export const GestaoAcesso: React.FC = () => {
           {/* Botões de Ação (centralizados) */}
           <div className="flex flex-col sm:flex-row justify-center gap-3">
             <button
-              onClick={() => setFormularioAberto('acesso')}
+              onClick={() => abrirFormulario('acesso')}
               className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-100"
             >
               <UserPlus size={18} />
               Solicitação de Acesso
             </button>
             <button
-              onClick={() => setFormularioAberto('reset_senha')}
+              onClick={() => abrirFormulario('reset_senha')}
               className="flex items-center justify-center gap-2 bg-white hover:bg-slate-100 text-indigo-700 border border-indigo-200 px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm"
             >
               <RotateCcw size={18} />
@@ -329,6 +426,140 @@ export const GestaoAcesso: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Modal de Solicitação de Acesso / Reset de Senha */}
+      {formularioAberto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100">
+              <h3 className="text-xl font-bold text-slate-800">{TIPO_LABEL[formularioAberto]}</h3>
+              <button onClick={fecharFormulario} disabled={isSaving} className="text-slate-400 hover:text-slate-600 transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCriarSolicitacao} className="p-6 overflow-y-auto space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className={labelClass}>Estado</label>
+                  <select
+                    required
+                    className={`${inputClass} appearance-none`}
+                    value={formData.estado}
+                    onChange={(e) => handleEstadoChange(e.target.value)}
+                  >
+                    <option value="" disabled>Selecione o estado</option>
+                    {ESTADOS.map((uf) => (
+                      <option key={uf} value={uf}>{uf}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className={labelClass}>Cidade</label>
+                  <select
+                    required
+                    disabled={!formData.estado}
+                    className={`${inputClass} appearance-none disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed`}
+                    value={formData.cidade}
+                    onChange={(e) => setFormData({ ...formData, cidade: e.target.value })}
+                  >
+                    <option value="" disabled>{formData.estado ? 'Selecione a cidade' : 'Escolha o estado primeiro'}</option>
+                    {(CIDADES_POR_ESTADO[formData.estado] ?? []).map((cidade) => (
+                      <option key={cidade} value={cidade}>{cidade}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className={labelClass}>Matrícula</label>
+                  <input
+                    type="text" required maxLength={20} placeholder="A80xxxx"
+                    className={`${inputClass} uppercase`}
+                    value={formData.matricula}
+                    onChange={(e) => setFormData({ ...formData, matricula: e.target.value.toUpperCase().trimStart() })}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className={labelClass}>Empresa</label>
+                  <input
+                    type="text" required maxLength={50} placeholder="Ex: TELEMONT"
+                    className={`${inputClass} uppercase`}
+                    value={formData.empresa}
+                    onChange={(e) => setFormData({ ...formData, empresa: e.target.value.toUpperCase().trimStart() })}
+                  />
+                </div>
+                <div className="md:col-span-2 space-y-1">
+                  <label className={labelClass}>Nome</label>
+                  <input
+                    type="text" required maxLength={100} placeholder="Nome completo"
+                    className={`${inputClass} uppercase`}
+                    value={formData.nome}
+                    onChange={(e) => setFormData({ ...formData, nome: e.target.value.toUpperCase() })}
+                  />
+                </div>
+
+                {formularioAberto === 'acesso' && (
+                  <>
+                    <div className="space-y-1">
+                      <label className={labelClass}>E-mail (Opcional)</label>
+                      <input
+                        type="email" maxLength={100} placeholder="nome@empresa.com.br"
+                        className={inputClass}
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value.trim() })}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className={labelClass}>Telefone</label>
+                      <input
+                        type="text" inputMode="numeric" required maxLength={20} placeholder="Apenas números. Ex: 67999999999"
+                        className={inputClass}
+                        value={formData.telefone}
+                        onChange={(e) => setFormData({ ...formData, telefone: e.target.value.replace(/\D/g, '') })}
+                      />
+                    </div>
+                    <div className="md:col-span-2 space-y-1">
+                      <label className={labelClass}>Observação (Opcional)</label>
+                      <textarea
+                        rows={2}
+                        maxLength={150}
+                        placeholder="Informe os sistemas nos quais deseja acesso..."
+                        className={`${inputClass} resize-none`}
+                        value={formData.observacao}
+                        onChange={(e) => setFormData({ ...formData, observacao: e.target.value })}
+                      />
+                      <div className="text-[10px] text-right text-slate-400 mt-1 mr-1 font-medium">
+                        {formData.observacao.length} / 150 caracteres
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button" onClick={fecharFormulario} disabled={isSaving}
+                  className="flex-1 px-4 py-3 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="flex-1 px-4 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all flex items-center justify-center gap-2 disabled:bg-indigo-300 disabled:shadow-none"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    'Enviar'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Detalhes da Solicitação (somente leitura) */}
       {selected && (
