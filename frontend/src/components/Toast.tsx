@@ -30,7 +30,7 @@ export const Toast: React.FC<{ toast: ToastData | null }> = ({ toast }) => (
   <div role="status" aria-live="polite" aria-atomic="true" className="fixed top-6 right-6 z-[100]">
     {toast && (
       <div
-        className={`flex items-center gap-3 px-5 py-4 rounded-2xl shadow-2xl border bg-white animate-in fade-in slide-in-from-right-8 duration-300 ${
+        className={`flex items-center gap-3 px-5 py-4 rounded-2xl shadow-lg border bg-white animate-in fade-in slide-in-from-right-8 duration-300 ${
           toast.type === 'success' ? 'border-emerald-100 text-emerald-800' : 'border-red-100 text-red-800'
         }`}
       >

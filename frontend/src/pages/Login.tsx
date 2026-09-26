@@ -33,7 +33,7 @@ export const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl shadow-slate-200 border border-slate-100 p-10">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-slate-100 p-10">
         <div className="flex justify-center mb-6">
           <div className="p-4 bg-indigo-50 rounded-2xl text-indigo-600">
             <ShieldCheck size={40} />
@@ -100,7 +100,7 @@ export const Login: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all shadow-lg shadow-indigo-100 disabled:bg-slate-300 disabled:shadow-none"
+            className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all shadow-sm disabled:bg-slate-300"
           >
             {loading ? 'Entrando…' : 'Entrar'}
           </button>

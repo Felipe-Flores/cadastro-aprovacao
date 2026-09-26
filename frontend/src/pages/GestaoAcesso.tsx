@@ -617,7 +617,7 @@ export const GestaoAcesso: React.FC = () => {
         <>
           <button
             onClick={() => abrirFormulario('acesso')}
-            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-100"
+            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm"
           >
             <UserPlus size={18} />
             Solicitação de Acesso
@@ -680,7 +680,7 @@ export const GestaoAcesso: React.FC = () => {
                   <button
                     type="submit"
                     disabled={buscando || !termoBusca.trim()}
-                    className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-100 disabled:bg-indigo-300 disabled:shadow-none"
+                    className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm disabled:bg-indigo-300"
                   >
                     {buscando ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
                     Buscar
@@ -927,7 +927,7 @@ export const GestaoAcesso: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSaving}
-                className="flex-1 px-4 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all flex items-center justify-center gap-2 disabled:bg-indigo-300 disabled:shadow-none"
+                className="flex-1 px-4 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-sm transition-all flex items-center justify-center gap-2 disabled:bg-indigo-300"
               >
                 {isSaving ? (
                   <>
@@ -1202,7 +1202,7 @@ export const GestaoAcesso: React.FC = () => {
               <button
                 onClick={() => handleSalvarTratativa(selected.tipo === 'reset_senha')}
                 disabled={isSavingTratativa}
-                className="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all text-sm flex items-center gap-2 disabled:bg-indigo-300 disabled:shadow-none"
+                className="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-sm transition-all text-sm flex items-center gap-2 disabled:bg-indigo-300"
               >
                 {isSavingTratativa ? (
                   <>

@@ -408,7 +408,7 @@ export const Dashboard: React.FC = () => {
           {(user?.cargo === 'gestor' || user?.cargo === 'gestor-master') && (
             <button
               onClick={exportToExcel}
-              className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-100"
+              className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm"
               title="Exportar para Excel"
               aria-label="Exportar para Excel"
             >
@@ -418,7 +418,7 @@ export const Dashboard: React.FC = () => {
           )}
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-100"
+            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm"
           >
             <Plus size={18} />
             Nova Atividade
@@ -718,7 +718,7 @@ export const Dashboard: React.FC = () => {
               <button 
                 type="submit"
                 disabled={isSaving}
-                className="flex-1 px-4 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all flex items-center justify-center gap-2 disabled:bg-indigo-300 disabled:shadow-none"
+                className="flex-1 px-4 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-sm transition-all flex items-center justify-center gap-2 disabled:bg-indigo-300"
               >
                 {isSaving ? (
                   <>
@@ -906,7 +906,7 @@ export const Dashboard: React.FC = () => {
                 setIsRejectModalOpen(false);
                 setItemToReject(null);
               }}
-              className="flex-1 px-4 py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 shadow-lg shadow-red-100 transition-all text-sm"
+              className="flex-1 px-4 py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 shadow-sm transition-all text-sm"
             >
               Sim, Reprovar
             </button>

@@ -1,6 +1,7 @@
 import React, { useEffect, useContext, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AppLayout } from '../components/AppLayout';
+import { Select } from '../components/Select';
 import { Toast, useToast } from '../components/Toast';
 import { AuthContext } from '../contexts/AuthContext';
 import api from '../api/api';
@@ -32,12 +33,11 @@ const initialFormData = {
   confirmarSenha: '',
 };
 
-const labelClass =
-  'block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2';
+const labelClass = 'block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2';
 const inputClass =
-  'w-full h-12 rounded-lg border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none text-base placeholder:text-outline/50';
+  'w-full h-12 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-base placeholder:text-slate-400';
 const selectClass =
-  'w-full h-12 px-4 rounded-lg border border-outline-variant bg-surface-bright focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none text-base';
+  'w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-base';
 
 export const UserForm: React.FC = () => {
   const { user, logout } = useContext(AuthContext);
@@ -244,31 +244,29 @@ export const UserForm: React.FC = () => {
   return (
     <AppLayout title="Cadastro de Usuários" icon={UserPlus}>
       <Toast toast={toast} />
-        <div className="w-full max-w-5xl mx-auto flex flex-col md:flex-row bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_10px_20px_rgba(0,0,0,0.05)] border border-outline-variant">
-          <div className="w-full md:w-5/12 bg-primary p-8 md:p-12 flex flex-col justify-between relative overflow-hidden text-on-primary">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-secondary-container opacity-20 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-10 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl"></div>
+        <div className="w-full max-w-5xl mx-auto flex flex-col md:flex-row bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200">
+          <div className="w-full md:w-5/12 bg-slate-50 border-b md:border-b-0 md:border-r border-slate-200 p-8 md:p-12 flex flex-col justify-between">
 
-            <div className="relative z-10">
-              <div className="w-12 h-12 bg-on-primary/10 rounded-xl flex items-center justify-center mb-8">
-                <UserPlus size={24} className="text-white" />
+            <div>
+              <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center mb-8">
+                <UserPlus size={24} aria-hidden="true" />
               </div>
-              <h2 className="text-xl font-semibold mb-4">Gestão de Identidade</h2>
-              <p className="text-base opacity-80 leading-relaxed">
+              <h2 className="text-xl font-bold text-slate-900 mb-4">Gestão de Identidade</h2>
+              <p className="text-base text-slate-600 leading-relaxed">
                 Gerencie os acessos do sistema de forma centralizada. Adicione novos colaboradores ou
                 atualize permissões existentes com segurança.
               </p>
             </div>
 
-            <div className="mt-12 relative z-10 hidden md:block">
-              <div className="p-4 rounded-lg border border-white/20 bg-white/5 mb-4 backdrop-blur-md">
+            <div className="mt-12 hidden md:block">
+              <div className="p-4 rounded-xl border border-slate-200 bg-white">
                 <div className="flex items-center gap-3 mb-2">
-                  <Shield size={16} className="text-white" />
-                  <span className="text-xs font-bold uppercase tracking-wider opacity-70">
+                  <Shield size={16} className="text-indigo-600" aria-hidden="true" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                     Dica de Segurança
                   </span>
                 </div>
-                <p className="text-xs opacity-90">
+                <p className="text-sm text-slate-600">
                   Senhas devem conter pelo menos 8 caracteres, incluindo letras maiúsculas, números e
                   símbolos.
                 </p>
@@ -283,7 +281,7 @@ export const UserForm: React.FC = () => {
                   <label className={labelClass} htmlFor="acao">
                     Ação Desejada
                   </label>
-                  <select
+                  <Select
                     id="acao"
                     value={acao}
                     onChange={(e) => handleAcaoChange(e.target.value as 'novo' | 'alterar')}
@@ -291,7 +289,7 @@ export const UserForm: React.FC = () => {
                   >
                     <option value="novo">Novo Usuário</option>
                     <option value="alterar">Alterar Usuário</option>
-                  </select>
+                  </Select>
                 </div>
 
                 {acao === 'alterar' && !usuarioEncontrado && (
@@ -303,7 +301,7 @@ export const UserForm: React.FC = () => {
                       <div className="relative flex-1">
                         <Badge
                           size={18}
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-outline"
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
                         />
                         <input
                           id="matricula-busca"
@@ -324,7 +322,7 @@ export const UserForm: React.FC = () => {
                         type="button"
                         onClick={() => handleBuscar()}
                         disabled={loadingUsuarios}
-                        className="h-12 px-6 bg-primary text-on-primary font-semibold text-sm rounded-lg hover:bg-primary-container transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+                        className="h-12 px-6 bg-indigo-600 text-white font-bold text-sm rounded-xl hover:bg-indigo-700 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
                       >
                         {loadingUsuarios ? (
                           <>
@@ -351,7 +349,7 @@ export const UserForm: React.FC = () => {
                       <div className="relative">
                         <Badge
                           size={18}
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-outline"
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
                         />
                         <input
                           id="matricula"
@@ -369,7 +367,7 @@ export const UserForm: React.FC = () => {
                       <label className={labelClass} htmlFor="empresa">
                         Empresa
                       </label>
-                      <select
+                      <Select
                         id="empresa"
                         required
                         value={formData.empresa}
@@ -384,7 +382,7 @@ export const UserForm: React.FC = () => {
                         <option value="ONDACOM">ONDACOM</option>
                         <option value="ABILITY">ABILITY</option>
                         <option value="ICOMON">ICOMON</option>
-                      </select>
+                      </Select>
                     </div>
 
                     <div className="md:col-span-2">
@@ -394,7 +392,7 @@ export const UserForm: React.FC = () => {
                       <div className="relative">
                         <User
                           size={18}
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-outline"
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
                         />
                         <input
                           id="nome"
@@ -412,7 +410,7 @@ export const UserForm: React.FC = () => {
                       <label className={labelClass} htmlFor="cargo">
                         Cargo / Nível de Acesso
                       </label>
-                      <select
+                      <Select
                         id="cargo"
                         value={formData.cargo}
                         onChange={(e) => handleChange('cargo', e.target.value)}
@@ -422,7 +420,7 @@ export const UserForm: React.FC = () => {
                         <option value="gestor">Gestor</option>
                         <option value="gestor-parceiro">Gestor Parceiro</option>
                         <option value="gestor-master">Gestor Master</option>
-                      </select>
+                      </Select>
                     </div>
 
                     <div className="md:col-span-2">
@@ -432,7 +430,7 @@ export const UserForm: React.FC = () => {
                       <div className="relative">
                         <Lock
                           size={18}
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-outline"
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
                         />
                         <input
                           id="senha"
@@ -451,7 +449,7 @@ export const UserForm: React.FC = () => {
                           onClick={() => setShowSenha(!showSenha)}
                           aria-label={showSenha ? 'Ocultar senha' : 'Mostrar senha'}
                           aria-pressed={showSenha}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-surface-container rounded-full transition-colors text-outline"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 rounded-full transition-colors text-slate-500"
                         >
                           {showSenha ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
                         </button>
@@ -465,7 +463,7 @@ export const UserForm: React.FC = () => {
                       <div className="relative">
                         <Lock
                           size={18}
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-outline"
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
                         />
                         <input
                           id="confirmar-senha"
@@ -484,7 +482,7 @@ export const UserForm: React.FC = () => {
                           onClick={() => setShowConfirmarSenha(!showConfirmarSenha)}
                           aria-label={showConfirmarSenha ? 'Ocultar senha' : 'Mostrar senha'}
                           aria-pressed={showConfirmarSenha}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-surface-container rounded-full transition-colors text-outline"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 rounded-full transition-colors text-slate-500"
                         >
                           {showConfirmarSenha ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
                         </button>
@@ -500,11 +498,11 @@ export const UserForm: React.FC = () => {
               </div>
 
               {mostrarFormularioCompleto && (
-                <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-outline-variant/30 mt-8">
+                <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-slate-100 mt-8">
                   <button
                     type="submit"
                     disabled={senhasNaoCoincidem || isSaving}
-                    className="flex-1 h-12 bg-primary text-on-primary font-semibold text-sm rounded-lg hover:bg-primary-container transition-all active:scale-[0.98] shadow-sm disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="flex-1 h-12 bg-indigo-600 text-white font-bold text-sm rounded-xl hover:bg-indigo-700 transition-all active:scale-[0.98] shadow-sm disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {isSaving ? (
                       <Loader2 size={18} className="animate-spin" />
@@ -518,7 +516,7 @@ export const UserForm: React.FC = () => {
                     type="button"
                     onClick={() => navigate('/dashboard')}
                     disabled={isSaving}
-                    className="flex-1 h-12 bg-transparent border border-outline-variant text-on-surface font-semibold text-sm rounded-lg hover:bg-surface-container-low transition-all active:scale-[0.98]"
+                    className="flex-1 h-12 bg-white border border-slate-200 text-slate-600 font-bold text-sm rounded-xl hover:bg-slate-50 transition-all active:scale-[0.98]"
                   >
                     Cancelar
                   </button>
