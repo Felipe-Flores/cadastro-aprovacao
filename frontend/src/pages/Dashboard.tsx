@@ -23,6 +23,7 @@ import {
   AlertCircle,
   Download,
   FileSpreadsheet,
+  KeyRound,
 } from 'lucide-react';
 
 interface Aprovacao {
@@ -423,26 +424,34 @@ export const Dashboard: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-6">
-            {(user?.cargo === 'gestor' || user?.cargo === 'gestor-master') && (
-              <div className="flex items-center gap-4 border-r border-slate-200 pr-6">
-                <button 
+            <div className="flex items-center gap-4 border-r border-slate-200 pr-6">
+              {/* Gestão de Acesso: disponível para todos os cargos */}
+              <button
+                onClick={() => navigate('/gestao-acesso')}
+                className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors font-medium text-sm"
+              >
+                <KeyRound size={18} />
+                <span className="hidden sm:inline">Gestão de Acesso</span>
+              </button>
+              {(user?.cargo === 'gestor' || user?.cargo === 'gestor-master') && (
+                <button
                   onClick={() => navigate('/analytics')}
                   className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors font-medium text-sm"
                 >
                   <BarChart3 size={18} />
                   <span>Indicadores</span>
                 </button>
-                {user?.cargo === 'gestor-master' && (
-                  <button 
-                    onClick={() => navigate('/usuarios')}
-                    className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors font-medium text-sm"
-                  >
-                    <Users size={18} />
-                    <span>Usuários</span>
-                  </button>
-                )}
-              </div>
-            )}
+              )}
+              {user?.cargo === 'gestor-master' && (
+                <button
+                  onClick={() => navigate('/usuarios')}
+                  className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors font-medium text-sm"
+                >
+                  <Users size={18} />
+                  <span>Usuários</span>
+                </button>
+              )}
+            </div>
             {user && (
               <div className="flex items-center gap-3 px-4 py-1.5 bg-slate-100 rounded-full">
                 <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center text-white text-xs font-bold">

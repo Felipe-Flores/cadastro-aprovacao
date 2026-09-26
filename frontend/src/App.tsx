@@ -5,6 +5,7 @@ import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { UserForm } from './pages/UserForm';
 import { Analytics } from './pages/Analytics';
+import { GestaoAcesso } from './pages/GestaoAcesso';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/usuarios" element={<UserForm />} />
           <Route path="/usuarios/cadastro" element={<Navigate to="/usuarios" replace />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/gestao-acesso" element={<GestaoAcesso />} />
           
           {/* Se o usuário tentar acessar qualquer outra rota, mandamos para o login */}
           <Route path="*" element={<Navigate to="/login" replace />} />

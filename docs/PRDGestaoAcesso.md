@@ -126,14 +126,14 @@ Fonte: `docs/documento_de_requisitos.md` e `docs/Brainstorming_gestao_acesso.txt
 
 ### Fase 3 — Frontend: menu, rota e tela do solicitante
 
-- [ ] Adicionar `empresa?: string` ao `User` de `frontend/src/contexts/AuthContext.tsx` e salvá-la em `Login.tsx`
-- [ ] Criar `frontend/src/constants/gestaoAcesso.ts` com `ESTADOS`, `CIDADES_POR_ESTADO`, `STATUS` e o helper `formatId(id)` (`padStart(4,'0')`)
-- [ ] Criar `frontend/src/pages/GestaoAcesso.tsx` com navbar no padrão do Dashboard (Voltar, nome/cargo, Sair) e redirecionamento para `/login` sem usuário ou em caso de `401`
-- [ ] Registrar `<Route path="/gestao-acesso" element={<GestaoAcesso />} />` em `frontend/src/App.tsx`
-- [ ] Adicionar botão **"Gestão de Acesso"** (ícone `KeyRound`/`ShieldCheck` do lucide) na navbar de `Dashboard.tsx`, visível para todos os cargos
-- [ ] Botões centrais `[Solicitação de Acesso]` e `[Reset de Senha]`
-- [ ] Tabela "Minhas Solicitações": ID, Tipo, Estado, Cidade, Data, Status (badge colorido por status); clique na linha abre a modal de detalhes em modo **somente leitura** com o histórico
-- [ ] Toasts de sucesso/erro reaproveitando o padrão visual do Dashboard
+- [v] Adicionar `empresa?: string` ao `User` de `frontend/src/contexts/AuthContext.tsx` e salvá-la em `Login.tsx`
+- [v] Criar `frontend/src/constants/gestaoAcesso.ts` com `ESTADOS`, `CIDADES_POR_ESTADO`, `STATUS` e o helper `formatId(id)` (`padStart(4,'0')`)
+- [v] Criar `frontend/src/pages/GestaoAcesso.tsx` com navbar no padrão do Dashboard (Voltar, nome/cargo, Sair) e redirecionamento para `/login` sem usuário ou em caso de `401`
+- [v] Registrar `<Route path="/gestao-acesso" element={<GestaoAcesso />} />` em `frontend/src/App.tsx`
+- [v] Adicionar botão **"Gestão de Acesso"** (ícone `KeyRound`/`ShieldCheck` do lucide) na navbar de `Dashboard.tsx`, visível para todos os cargos
+- [v] Botões centrais `[Solicitação de Acesso]` e `[Reset de Senha]`
+- [v] Tabela "Minhas Solicitações": ID, Tipo, Estado, Cidade, Data, Status (badge colorido por status); clique na linha abre a modal de detalhes em modo **somente leitura** com o histórico
+- [v] Toasts de sucesso/erro reaproveitando o padrão visual do Dashboard
 
 ### Fase 4 — Frontend: formulários de abertura
 
