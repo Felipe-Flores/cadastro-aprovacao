@@ -48,9 +48,14 @@ export const Login: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Matrícula</label>
+            <label htmlFor="login-matricula" className="block text-sm font-semibold text-slate-700 mb-2">Matrícula</label>
             <input
+              id="login-matricula"
+              name="matricula"
               type="text"
+              autoComplete="username"
+              autoCapitalize="characters"
+              spellCheck={false}
               autoFocus
               required
               placeholder="A00xxx, G00xxx, 8081xxx"
@@ -60,9 +65,12 @@ export const Login: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Senha</label>
+            <label htmlFor="login-senha" className="block text-sm font-semibold text-slate-700 mb-2">Senha</label>
             <div className="relative">
               <input
+                id="login-senha"
+                name="senha"
+                autoComplete="current-password"
                 type={showSenha ? 'text' : 'password'}
                 required
                 placeholder="••••••••"
@@ -73,16 +81,18 @@ export const Login: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowSenha(!showSenha)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors focus:outline-none"
+                aria-label={showSenha ? 'Ocultar senha' : 'Mostrar senha'}
+                aria-pressed={showSenha}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-indigo-600 transition-colors rounded"
               >
-                {showSenha ? <EyeOff size={20} /> : <Eye size={20} />}
+                {showSenha ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}
               </button>
             </div>
           </div>
 
           {error && (
             <div role="alert" className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm animate-in fade-in slide-in-from-top-1">
-              <AlertCircle size={18} />
+              <AlertCircle size={18} aria-hidden="true" />
               <span className="font-medium">{error}</span>
             </div>
           )}
@@ -92,7 +102,7 @@ export const Login: React.FC = () => {
             disabled={loading}
             className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all shadow-lg shadow-indigo-100 disabled:bg-slate-300 disabled:shadow-none"
           >
-            {loading ? 'Entrando...' : 'Entrar'}
+            {loading ? 'Entrando…' : 'Entrar'}
           </button>
         </form>
       </div>

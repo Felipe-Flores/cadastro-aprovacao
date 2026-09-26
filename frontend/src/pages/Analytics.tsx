@@ -131,9 +131,10 @@ export const Analytics: React.FC = () => {
           {/* Filtro por Empresa */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200">
-              <Filter size={18} className="text-slate-400" />
-              <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">Filtrar Empresa:</span>
+              <Filter size={18} className="text-slate-500" aria-hidden="true" />
+              <label htmlFor="analytics-empresa" className="text-sm font-bold text-slate-500 uppercase tracking-wider">Filtrar Empresa:</label>
               <select
+                id="analytics-empresa"
                 value={selectedEmpresa}
                 onChange={(e) => setSelectedEmpresa(e.target.value)}
                 className="bg-transparent border-none focus:ring-0 text-sm font-bold text-slate-700 cursor-pointer min-w-[150px]"
@@ -149,28 +150,28 @@ export const Analytics: React.FC = () => {
           {/* Cards de Resumo */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Geral</p>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Geral</p>
               <div className="mt-2 flex items-baseline gap-2">
                 <span className="text-3xl font-black text-slate-900">{totals.total}</span>
                 <TrendingUp size={16} className="text-indigo-500" />
               </div>
             </div>
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-              <p className="text-xs font-bold text-amber-500 uppercase tracking-wider">Pendentes</p>
+              <p className="text-xs font-bold text-amber-700 uppercase tracking-wider">Pendentes</p>
               <div className="mt-2 flex items-baseline gap-2">
                 <span className="text-3xl font-black text-slate-900">{totals.pendentes}</span>
                 <Clock size={16} className="text-amber-500" />
               </div>
             </div>
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-              <p className="text-xs font-bold text-emerald-500 uppercase tracking-wider">Aprovados</p>
+              <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Aprovados</p>
               <div className="mt-2 flex items-baseline gap-2">
                 <span className="text-3xl font-black text-slate-900">{totals.aprovados}</span>
                 <CheckCircle2 size={16} className="text-emerald-500" />
               </div>
             </div>
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-red-100 bg-red-50/30">
-              <p className="text-xs font-bold text-red-500 uppercase tracking-wider">Fora do Slot</p>
+              <p className="text-xs font-bold text-red-700 uppercase tracking-wider">Fora do Slot</p>
               <div className="mt-2 flex items-baseline gap-2">
                 <span className="text-3xl font-black text-red-600">{totals.foraSlot}</span>
                 <AlertTriangle size={16} className="text-red-500" />
@@ -190,9 +191,9 @@ export const Analytics: React.FC = () => {
                   <tr>
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Empresa</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Total</th>
-                    <th className="px-6 py-4 text-xs font-bold text-amber-600 uppercase tracking-wider text-center">Pendentes</th>
-                    <th className="px-6 py-4 text-xs font-bold text-emerald-600 uppercase tracking-wider text-center">Aprovados</th>
-                    <th className="px-6 py-4 text-xs font-bold text-red-600 uppercase tracking-wider text-center">Reprovados</th>
+                    <th className="px-6 py-4 text-xs font-bold text-amber-700 uppercase tracking-wider text-center">Pendentes</th>
+                    <th className="px-6 py-4 text-xs font-bold text-emerald-700 uppercase tracking-wider text-center">Aprovados</th>
+                    <th className="px-6 py-4 text-xs font-bold text-red-700 uppercase tracking-wider text-center">Reprovados</th>
                     <th className="px-6 py-4 text-xs font-bold text-indigo-600 uppercase tracking-wider text-center">Fora Slot</th>
                     <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Aproveitamento</th>
                   </tr>
@@ -228,7 +229,7 @@ export const Analytics: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 text-center">
                           <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${
-                            s.foraSlot > 0 ? 'bg-red-50 text-red-700 border-red-200' : 'bg-slate-50 text-slate-400 border-slate-200'
+                            s.foraSlot > 0 ? 'bg-red-50 text-red-700 border-red-200' : 'bg-slate-50 text-slate-500 border-slate-200'
                           }`}>
                             {s.foraSlot}
                           </span>

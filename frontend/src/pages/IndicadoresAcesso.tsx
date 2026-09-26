@@ -99,19 +99,19 @@ const BarrasRanking: React.FC<{ grupos: Grupo[]; totalGeral: number; limite?: nu
         >
           <div className="min-w-0">
             <p className="text-sm font-medium text-slate-700 truncate">{g.rotulo}</p>
-            {g.subrotulo && <p className="text-[11px] text-slate-400 truncate">{g.subrotulo}</p>}
+            {g.subrotulo && <p className="text-[11px] text-slate-500 truncate">{g.subrotulo}</p>}
           </div>
           <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
             <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${(g.total / maior) * 100}%` }}></div>
           </div>
           <p className="text-sm text-slate-700 tabular-nums text-right whitespace-nowrap">
             <span className="font-bold">{g.total}</span>
-            <span className="text-slate-400 text-xs ml-1.5">{percentual(g.total, totalGeral)}%</span>
+            <span className="text-slate-500 text-xs ml-1.5">{percentual(g.total, totalGeral)}%</span>
           </p>
         </div>
       ))}
       {limite && grupos.length > limite && (
-        <p className="text-xs text-slate-400 px-2 pt-1">
+        <p className="text-xs text-slate-500 px-2 pt-1">
           Exibindo os {limite} maiores de {grupos.length}. Veja todos na tabela abaixo.
         </p>
       )}
@@ -146,7 +146,7 @@ const TabelaGrupos: React.FC<{ grupos: Grupo[]; colunaRotulo: string; mostrarTip
             <tr key={g.chave} className="hover:bg-slate-50 transition-colors">
               <td className="px-4 py-3">
                 <p className="text-sm font-bold text-slate-700">{g.rotulo}</p>
-                {g.subrotulo && <p className="text-xs text-slate-400">{g.subrotulo}</p>}
+                {g.subrotulo && <p className="text-xs text-slate-500">{g.subrotulo}</p>}
               </td>
               <td className="px-4 py-3 text-center font-mono font-bold text-slate-700">{g.total}</td>
               {mostrarTipos && (
@@ -187,7 +187,7 @@ const Painel: React.FC<{ titulo: string; descricao: string; icone: React.ReactNo
         {icone}
         {titulo}
       </h3>
-      <p className="text-xs text-slate-400 mt-0.5">{descricao}</p>
+      <p className="text-xs text-slate-500 mt-0.5">{descricao}</p>
     </div>
     {children}
   </section>
@@ -296,28 +296,28 @@ export const IndicadoresAcesso: React.FC = () => {
         <>
           {/* Filtros (uma linha acima dos gráficos) */}
           <div className="flex flex-col lg:flex-row lg:items-end gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-            <div className="flex items-center gap-2 text-slate-400 lg:pb-2.5">
+            <div className="flex items-center gap-2 text-slate-500 lg:pb-2.5">
               <Filter size={18} />
               <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">Filtros</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 flex-1">
               <div className="space-y-1">
-                <label className={labelClass}>Pedidos de</label>
-                <input
+                <label htmlFor="ind-pedidos-de" className={labelClass}>Pedidos de</label>
+                <input id="ind-pedidos-de"
                   type="date" className={inputClass} max={filtros.ate || undefined}
                   value={filtros.de} onChange={(e) => setFiltros({ ...filtros, de: e.target.value })}
                 />
               </div>
               <div className="space-y-1">
-                <label className={labelClass}>Até</label>
-                <input
+                <label htmlFor="ind-ate" className={labelClass}>Até</label>
+                <input id="ind-ate"
                   type="date" className={inputClass} min={filtros.de || undefined}
                   value={filtros.ate} onChange={(e) => setFiltros({ ...filtros, ate: e.target.value })}
                 />
               </div>
               <div className="space-y-1">
-                <label className={labelClass}>Empresa</label>
-                <Select className={inputClass} value={filtros.empresa} onChange={(e) => setFiltros({ ...filtros, empresa: e.target.value })}>
+                <label htmlFor="ind-empresa" className={labelClass}>Empresa</label>
+                <Select id="ind-empresa" className={inputClass} value={filtros.empresa} onChange={(e) => setFiltros({ ...filtros, empresa: e.target.value })}>
                   <option value="">Todas</option>
                   {empresas.map((empresa) => (
                     <option key={empresa} value={empresa}>{empresa}</option>
@@ -325,8 +325,8 @@ export const IndicadoresAcesso: React.FC = () => {
                 </Select>
               </div>
               <div className="space-y-1">
-                <label className={labelClass}>Tipo do Pedido</label>
-                <Select className={inputClass} value={filtros.tipo} onChange={(e) => setFiltros({ ...filtros, tipo: e.target.value })}>
+                <label htmlFor="ind-tipo-do-pedido" className={labelClass}>Tipo do Pedido</label>
+                <Select id="ind-tipo-do-pedido" className={inputClass} value={filtros.tipo} onChange={(e) => setFiltros({ ...filtros, tipo: e.target.value })}>
                   <option value="">Todos</option>
                   <option value="acesso">{TIPO_LABEL.acesso}</option>
                   <option value="reset_senha">{TIPO_LABEL.reset_senha}</option>
@@ -345,7 +345,7 @@ export const IndicadoresAcesso: React.FC = () => {
           {/* Cards de Resumo */}
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total de Pedidos</p>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total de Pedidos</p>
               <div className="mt-2 flex items-baseline gap-2">
                 <span className="text-3xl font-black text-slate-900 tabular-nums">{resumo.total}</span>
                 <TrendingUp size={16} className="text-indigo-500" />
@@ -355,24 +355,24 @@ export const IndicadoresAcesso: React.FC = () => {
               <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Não Iniciados</p>
               <div className="mt-2 flex items-baseline gap-2">
                 <span className="text-3xl font-black text-slate-900 tabular-nums">{resumo.naoIniciado}</span>
-                <Clock size={16} className="text-slate-400" />
+                <Clock size={16} className="text-slate-500" />
               </div>
             </div>
             <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-              <p className="text-xs font-bold text-amber-600 uppercase tracking-wider">Em Andamento</p>
+              <p className="text-xs font-bold text-amber-700 uppercase tracking-wider">Em Andamento</p>
               <div className="mt-2 flex items-baseline gap-2">
                 <span className="text-3xl font-black text-slate-900 tabular-nums">{resumo.emAndamento}</span>
                 <PlayCircle size={16} className="text-amber-500" />
               </div>
-              <p className="text-[11px] text-slate-400 mt-1">Iniciados + Pendentes</p>
+              <p className="text-[11px] text-slate-500 mt-1">Iniciados + Pendentes</p>
             </div>
             <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-              <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider">Concluídos</p>
+              <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Concluídos</p>
               <div className="mt-2 flex items-baseline gap-2">
                 <span className="text-3xl font-black text-slate-900 tabular-nums">{resumo.concluido}</span>
                 <CheckCircle2 size={16} className="text-emerald-500" />
               </div>
-              <p className="text-[11px] text-slate-400 mt-1">{percentual(resumo.concluido, resumo.total)}% do total</p>
+              <p className="text-[11px] text-slate-500 mt-1">{percentual(resumo.concluido, resumo.total)}% do total</p>
             </div>
             <div className="col-span-2 lg:col-span-1 bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
               <p className="text-xs font-bold text-indigo-600 uppercase tracking-wider">Tempo Médio de Conclusão</p>
@@ -382,12 +382,12 @@ export const IndicadoresAcesso: React.FC = () => {
                 </span>
                 <Timer size={16} className="text-indigo-500" />
               </div>
-              <p className="text-[11px] text-slate-400 mt-1">Da abertura até a conclusão</p>
+              <p className="text-[11px] text-slate-500 mt-1">Da abertura até a conclusão</p>
             </div>
           </div>
 
           {resumo.total === 0 ? (
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 px-6 py-16 text-center text-slate-400">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 px-6 py-16 text-center text-slate-500">
               {temFiltroAtivo ? 'Nenhum pedido encontrado com os filtros aplicados.' : 'Nenhum pedido registrado até o momento.'}
             </div>
           ) : (

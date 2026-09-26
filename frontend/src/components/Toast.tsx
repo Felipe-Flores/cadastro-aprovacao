@@ -1,10 +1,29 @@
-import React from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Check, AlertCircle } from 'lucide-react';
 
 export interface ToastData {
   message: string;
   type: 'success' | 'error';
 }
+
+// Estado do toast com um único timer: uma nova mensagem reinicia a contagem em vez de ser apagada pelo timer anterior
+export const useToast = (duracaoMs = 3000) => {
+  const [toast, setToast] = useState<ToastData | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const showToast = useCallback(
+    (message: string, type: ToastData['type']) => {
+      clearTimeout(timerRef.current);
+      setToast({ message, type });
+      timerRef.current = setTimeout(() => setToast(null), duracaoMs);
+    },
+    [duracaoMs],
+  );
+
+  useEffect(() => () => clearTimeout(timerRef.current), []);
+
+  return { toast, showToast };
+};
 
 // A região aria-live fica sempre montada para que leitores de tela anunciem cada nova mensagem
 export const Toast: React.FC<{ toast: ToastData | null }> = ({ toast }) => (

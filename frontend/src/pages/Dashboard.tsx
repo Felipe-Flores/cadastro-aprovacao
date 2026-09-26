@@ -5,7 +5,8 @@ import api from '../api/api';
 import { Select } from '../components/Select';
 import { AppLayout } from '../components/AppLayout';
 import { Modal } from '../components/Modal';
-import { Toast, type ToastData } from '../components/Toast';
+import { SortableHeader } from '../components/SortableHeader';
+import { Toast, useToast } from '../components/Toast';
 import { getInitials } from '../utils/getInitials';
 import * as XLSX from 'xlsx';
 import { 
@@ -19,7 +20,6 @@ import {
   AlertTriangle,
   Loader2,
   Search,
-  ArrowUpDown,
   Download,
 } from 'lucide-react';
 
@@ -128,7 +128,7 @@ export const Dashboard: React.FC = () => {
   const [sortConfig, setSortConfig] = useState<{ key: keyof Aprovacao; direction: 'asc' | 'desc' } | null>(null);
 
   // Estado para o Toast (Notificação)
-  const [toast, setToast] = useState<ToastData | null>(null);
+  const { toast, showToast } = useToast();
   
   // Estados para o Modal de Confirmação de Reprovação
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
@@ -192,10 +192,6 @@ export const Dashboard: React.FC = () => {
     setSelectedAprovacao(null);
   };
 
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
@@ -348,6 +344,11 @@ export const Dashboard: React.FC = () => {
   // 7 colunas de dados + "Ações" para gestores
   const totalColunas = user?.cargo === 'gestor' || user?.cargo === 'gestor-master' ? 8 : 7;
 
+  const abrirDetalhes = (item: Aprovacao) => {
+    setSelectedAprovacao(item);
+    setIsDetailsModalOpen(true);
+  };
+
   const fecharReprovacao = () => {
     setIsRejectModalOpen(false);
     setItemToReject(null);
@@ -409,6 +410,7 @@ export const Dashboard: React.FC = () => {
               onClick={exportToExcel}
               className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-100"
               title="Exportar para Excel"
+              aria-label="Exportar para Excel"
             >
               <Download size={18} />
               <span className="hidden sm:inline">Exportar Excel</span>
@@ -427,7 +429,7 @@ export const Dashboard: React.FC = () => {
           {/* Busca e contador */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
               <input 
                 type="text"
                 placeholder="Buscar por PON, Empresa ou Status..."
@@ -456,16 +458,13 @@ export const Dashboard: React.FC = () => {
                       { label: 'Dentro Slot', key: 'dentro_time_slot', align: 'center' },
                       { label: 'Status', key: 'status', align: 'center' }
                     ].map((col) => (
-                      <th 
+                      <SortableHeader
                         key={col.key}
-                        onClick={() => handleSort(col.key as keyof Aprovacao)}
-                        className={`px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors ${col.align === 'center' ? 'text-center' : ''}`}
-                      >
-                        <div className={`flex items-center gap-1 ${col.align === 'center' ? 'justify-center' : ''}`}>
-                          {col.label}
-                          <ArrowUpDown size={12} className={sortConfig?.key === col.key ? 'text-indigo-600' : 'text-slate-300'} />
-                        </div>
-                      </th>
+                        label={col.label}
+                        align={col.align === 'center' ? 'center' : 'left'}
+                        direction={sortConfig?.key === col.key ? sortConfig.direction : null}
+                        onSort={() => handleSort(col.key as keyof Aprovacao)}
+                      />
                     ))}
                     {(user?.cargo === 'gestor-master' || user?.cargo === 'gestor') && (
                       <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Ações</th>
@@ -474,17 +473,22 @@ export const Dashboard: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {loading ? (
-                    <tr><td colSpan={totalColunas} className="px-6 py-10 text-center text-slate-400">Carregando dados...</td></tr>
+                    <tr><td colSpan={totalColunas} className="px-6 py-10 text-center text-slate-500">Carregando dados...</td></tr>
                   ) : filteredAndSortedAprovacoes.length === 0 ? (
-                    <tr><td colSpan={totalColunas} className="px-6 py-10 text-center text-slate-400">Nenhum registro encontrado.</td></tr>
+                    <tr><td colSpan={totalColunas} className="px-6 py-10 text-center text-slate-500">Nenhum registro encontrado.</td></tr>
                   ) : filteredAndSortedAprovacoes.map((item) => (
                     <tr 
                       key={item.id} 
-                      onClick={() => {
-                        setSelectedAprovacao(item);
-                        setIsDetailsModalOpen(true);
+                      onClick={() => abrirDetalhes(item)}
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        // Enter/Espaço na própria linha abre os detalhes (ignora teclas vindas dos botões internos)
+                        if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+                          e.preventDefault();
+                          abrirDetalhes(item);
+                        }
                       }}
-                      className="hover:bg-slate-100/50 even:bg-slate-50/50 transition-colors group cursor-pointer"
+                      className="hover:bg-slate-100/50 even:bg-slate-50/50 transition-colors group cursor-pointer focus-visible:outline-offset-[-2px]"
                     >
                       <td className="px-6 py-4 text-sm text-slate-600 whitespace-nowrap">{item.cidade}</td>
                       <td className="px-6 py-4">
@@ -533,10 +537,10 @@ export const Dashboard: React.FC = () => {
                                 </button>
                               </div>
                             ) : (
-                              <span className="text-xs text-slate-400 italic">Requer Master</span>
+                              <span className="text-xs text-slate-500 italic">Requer Master</span>
                             )
                           ) : (
-                            <span className="text-xs text-slate-400 italic">Concluído</span>
+                            <span className="text-xs text-slate-500 italic">Concluído</span>
                           )}
                         </td>
                       )}
@@ -552,7 +556,7 @@ export const Dashboard: React.FC = () => {
         <Modal onClose={closeModal} labelledBy="titulo-nova-atividade" className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
           <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100">
             <h3 id="titulo-nova-atividade" className="text-xl font-bold text-slate-800">Cadastrar Nova Atividade</h3>
-            <button type="button" onClick={closeModal} aria-label="Fechar" className="text-slate-400 hover:text-slate-600 transition-colors">
+            <button type="button" onClick={closeModal} aria-label="Fechar" className="text-slate-500 hover:text-slate-600 transition-colors">
               <X size={24} />
             </button>
           </div>
@@ -560,32 +564,32 @@ export const Dashboard: React.FC = () => {
           <form onSubmit={handleCreateActivity} className="p-6 overflow-y-auto space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2 space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Atividade</label>
-                <input
+                <label htmlFor="atv-atividade" className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Atividade</label>
+                <input id="atv-atividade"
                   type="text" required placeholder="Digite numero da atividade Ex: 18798549"
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                   value={formData.atividade} onChange={(e) => setFormData({...formData, atividade: e.target.value})}
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Número PON</label>
-                <input
+                <label htmlFor="atv-numero-pon" className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Número PON</label>
+                <input id="atv-numero-pon"
                   type="text" required placeholder="Pon: 8-PKd85"
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                   value={formData.pon} onChange={(e) => setFormData({...formData, pon: e.target.value})}
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Cidade</label>
-                <input
+                <label htmlFor="atv-cidade" className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Cidade</label>
+                <input id="atv-cidade"
                   type="text" required placeholder="Ex: Campo Grande"
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 uppercase rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                   value={formData.cidade} onChange={(e) => setFormData({...formData, cidade: e.target.value.toUpperCase()})}
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Detalhe da Atividade</label>
-                <Select
+                <label htmlFor="atv-detalhe-da-atividade" className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Detalhe da Atividade</label>
+                <Select id="atv-detalhe-da-atividade"
                   required
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                   value={formData.detalhe_atividade}
@@ -597,8 +601,8 @@ export const Dashboard: React.FC = () => {
                 </Select>
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">UF</label>
-                <Select 
+                <label htmlFor="atv-uf" className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">UF</label>
+                <Select id="atv-uf" 
                   required
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                   value={formData.uf} 
@@ -611,8 +615,8 @@ export const Dashboard: React.FC = () => {
                 </Select>
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Data Execução</label>
-                <input
+                <label htmlFor="atv-data-execucao" className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Data Execução</label>
+                <input id="atv-data-execucao"
                   type="date" required
                   max={getLocalToday()}
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
@@ -620,24 +624,24 @@ export const Dashboard: React.FC = () => {
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Matrícula Técnico</label>
-                <input 
+                <label htmlFor="atv-matricula-tecnico" className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Matrícula Técnico</label>
+                <input id="atv-matricula-tecnico" 
                   type="text" required placeholder="A80xxxx"
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 uppercase rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                   value={formData.matricula_tecnico} onChange={(e) => setFormData({...formData, matricula_tecnico: e.target.value})}
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Nome Técnico</label>
-                <input 
+                <label htmlFor="atv-nome-tecnico" className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Nome Técnico</label>
+                <input id="atv-nome-tecnico" 
                   type="text" required placeholder="Nome completo"
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 uppercase rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                   value={formData.tecnico} onChange={(e) => setFormData({...formData, tecnico: e.target.value})}
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Time Slot</label>
-                <Select 
+                <label htmlFor="atv-time-slot" className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Time Slot</label>
+                <Select id="atv-time-slot" 
                   required
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                   value={formData.time_slot} 
@@ -662,8 +666,8 @@ export const Dashboard: React.FC = () => {
                 </Select>
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Atividade está Dentro dos 30min?</label>
-                <select 
+                <label htmlFor="atv-atividade-esta-dentro-dos-30min" className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Atividade está Dentro dos 30min?</label>
+                <select id="atv-atividade-esta-dentro-dos-30min" 
                   disabled
                   className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none text-slate-500 font-bold cursor-not-allowed"
                   value={formData.dentro_time_slot} 
@@ -673,8 +677,8 @@ export const Dashboard: React.FC = () => {
                 </select>
               </div>
               <div className="md:col-span-2 space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Motivo</label>
-                <Select 
+                <label htmlFor="atv-motivo" className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Motivo</label>
+                <Select id="atv-motivo" 
                   required
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                   value={formData.motivo} 
@@ -690,8 +694,8 @@ export const Dashboard: React.FC = () => {
                 </Select>
               </div>
               <div className="md:col-span-2 space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Observação (Opcional)</label>
-                <textarea 
+                <label htmlFor="atv-observacao-opcional" className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Observação (Opcional)</label>
+                <textarea id="atv-observacao-opcional" 
                   rows={2}
                   maxLength={255}
                   placeholder="Descreva brevemente detalhes relevantes da atividade..."
@@ -699,7 +703,7 @@ export const Dashboard: React.FC = () => {
                   value={formData.observacao} 
                   onChange={(e) => setFormData({...formData, observacao: e.target.value})}
                 />
-                <div className="text-[10px] text-right text-slate-400 mt-1 mr-1 font-medium">
+                <div className="text-[10px] text-right text-slate-500 mt-1 mr-1 font-medium">
                   {formData.observacao.length} / 255 caracteres
                 </div>
               </div>
@@ -738,7 +742,7 @@ export const Dashboard: React.FC = () => {
               <h3 id="titulo-detalhes-atividade" className="text-xl font-bold text-slate-800">Detalhes da Atividade</h3>
               <p className="text-xs text-slate-500 font-mono mt-0.5">ID: #{selectedAprovacao.id}</p>
             </div>
-            <button type="button" onClick={closeDetailsModal} aria-label="Fechar" className="text-slate-400 hover:text-slate-600 transition-colors p-1 hover:bg-white rounded-full">
+            <button type="button" onClick={closeDetailsModal} aria-label="Fechar" className="text-slate-500 hover:text-slate-600 transition-colors p-1 hover:bg-white rounded-full">
               <X size={24} />
             </button>
           </div>
@@ -748,7 +752,7 @@ export const Dashboard: React.FC = () => {
               {/* Status e PON */}
               <div className="flex flex-col gap-4">
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status Atual</span>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Status Atual</span>
                   <div className={`mt-2 w-fit flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold ${getStatusStyle(selectedAprovacao.status)}`}>
                     {getStatusIcon(selectedAprovacao.status)}
                     {selectedAprovacao.status}
@@ -756,25 +760,25 @@ export const Dashboard: React.FC = () => {
                 </div>
                 
                 <div className="space-y-1 px-1">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Número PON</p>
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Número PON</p>
                   <p className="text-lg font-mono font-bold text-indigo-600">{selectedAprovacao.pon}</p>
                 </div>
                 
                 <div className="space-y-1 px-1">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Atividade (OS)</p>
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Atividade (OS)</p>
                   <p className="text-slate-700 font-medium">{selectedAprovacao.atividade}</p>
                 </div>
 
                 <div className="space-y-1 px-1">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Cidade</p>
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Cidade</p>
                   <p className="text-slate-700 font-medium">{selectedAprovacao.cidade}</p>
                 </div>
                 <div className="space-y-1 px-1">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Detalhe da Atividade</p>
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Detalhe da Atividade</p>
                   <p className="text-slate-700 font-medium">{selectedAprovacao.detalhe_atividade || 'Não informado'}</p>
                 </div>
                 <div className="space-y-1 px-1">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">UF</p>
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">UF</p>
                   <p className="text-slate-700 font-medium">{selectedAprovacao.uf}</p>
                 </div>
               </div>
@@ -782,20 +786,20 @@ export const Dashboard: React.FC = () => {
               {/* Datas e Slot */}
               <div className="flex flex-col gap-4">
                 <div className="space-y-1 px-1">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Data de Execução</p>
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Data de Execução</p>
                   <div className="flex items-center gap-2 text-slate-700">
-                    <Clock size={16} className="text-slate-400" />
+                    <Clock size={16} className="text-slate-500" />
                     <span className="font-semibold">{formatDate(selectedAprovacao.data_execucao)}</span>
                   </div>
                 </div>
 
                 <div className="space-y-1 px-1">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Janela / Time Slot</p>
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Janela / Time Slot</p>
                   <p className="text-slate-700">{selectedAprovacao.time_slot} <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded border ${selectedAprovacao.dentro_time_slot === 'Sim' ? 'text-emerald-600 border-emerald-100' : 'text-red-600 border-red-100'}`}>Slot: {selectedAprovacao.dentro_time_slot}</span></p>
                 </div>
 
                 <div className="space-y-1 px-1">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Motivo da Solicitação</p>
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Motivo da Solicitação</p>
                   <p className="text-slate-700">{selectedAprovacao.motivo}</p>
                 </div>
               </div>
@@ -817,7 +821,7 @@ export const Dashboard: React.FC = () => {
                   </div>
 
                   <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Técnico em Campo</p>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Técnico em Campo</p>
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center text-slate-500">
                         <UserIcon size={20} />
@@ -833,7 +837,7 @@ export const Dashboard: React.FC = () => {
 
               {/* Observações */}
               <div className="md:col-span-2 space-y-2">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">Observações Adicionais</p>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider px-1">Observações Adicionais</p>
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 min-h-[80px]">
                   <p className="text-sm text-slate-600 italic">
                     {selectedAprovacao.observacao || 'Nenhuma observação informada.'}
@@ -843,16 +847,16 @@ export const Dashboard: React.FC = () => {
 
               {/* Histórico de Registro */}
               <div className="md:col-span-2 border-t border-slate-100 pt-6">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1 mb-3">Histórico de Registro</p>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider px-1 mb-3">Histórico de Registro</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1 px-1">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Criado em</p>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Criado em</p>
                     <div className="flex items-center gap-2 text-slate-700">
                       <span className="font-semibold">{selectedAprovacao.data_inserida ? new Date(selectedAprovacao.data_inserida).toLocaleString('pt-BR') : 'N/A'}</span>
                     </div>
                   </div>
                   <div className="space-y-1 px-1">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Última Modificação</p>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Última Modificação</p>
                     <div className="flex items-center gap-2 text-slate-700">
                       <span className="font-semibold">{selectedAprovacao.data_modificacao ? new Date(selectedAprovacao.data_modificacao).toLocaleString('pt-BR') : 'N/A'}</span>
                     </div>

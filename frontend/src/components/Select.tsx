@@ -15,7 +15,7 @@ export const Select: React.FC<SelectProps> = ({ className = '', children, disabl
     </select>
     <ChevronDown
       size={18}
-      className={`pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 ${disabled ? 'text-slate-300' : 'text-slate-400'}`}
+      className={`pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 ${disabled ? 'text-slate-400' : 'text-slate-500'}`}
     />
   </div>
 );

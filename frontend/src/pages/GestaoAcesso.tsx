@@ -2,7 +2,8 @@ import React, { useEffect, useState, useContext, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AppLayout } from '../components/AppLayout';
 import { Modal } from '../components/Modal';
-import { Toast, type ToastData } from '../components/Toast';
+import { SortableHeader } from '../components/SortableHeader';
+import { Toast, useToast } from '../components/Toast';
 import { AuthContext } from '../contexts/AuthContext';
 import api from '../api/api';
 import {
@@ -15,7 +16,6 @@ import {
   PlayCircle,
   PauseCircle,
   X,
-  ArrowUpDown,
   AlertCircle,
   Loader2,
   History,
@@ -156,7 +156,7 @@ const COLUNAS_FILA: Coluna[] = [
     render: (item) => (
       <div>
         <p className="font-medium text-slate-700">{item.nome_solicitante}</p>
-        <p className="text-xs text-slate-400">{item.matricula_solicitante}</p>
+        <p className="text-xs text-slate-500">{item.matricula_solicitante}</p>
       </div>
     ),
   },
@@ -210,12 +210,8 @@ export const GestaoAcesso: React.FC = () => {
   const [tratativa, setTratativa] = useState(TRATATIVA_VAZIA);
   const [isSavingTratativa, setIsSavingTratativa] = useState(false);
 
-  const [toast, setToast] = useState<ToastData | null>(null);
+  const { toast, showToast } = useToast();
 
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
 
   const handleLogout = () => {
     logout();
@@ -538,16 +534,13 @@ export const GestaoAcesso: React.FC = () => {
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
                 {colunas.map((col) => (
-                  <th
+                  <SortableHeader
                     key={col.key}
-                    onClick={() => handleSort(col.key)}
-                    className={`px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors ${col.align === 'center' ? 'text-center' : ''}`}
-                  >
-                    <div className={`flex items-center gap-1 ${col.align === 'center' ? 'justify-center' : ''}`}>
-                      {col.label}
-                      <ArrowUpDown size={12} className={sortConfig?.key === col.key ? 'text-indigo-600' : 'text-slate-300'} />
-                    </div>
-                  </th>
+                    label={col.label}
+                    align={col.align === 'center' ? 'center' : 'left'}
+                    direction={sortConfig?.key === col.key ? sortConfig.direction : null}
+                    onSort={() => handleSort(col.key)}
+                  />
                 ))}
                 {options.comAcoes && (
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Ações</th>
@@ -556,14 +549,22 @@ export const GestaoAcesso: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {options.carregando ? (
-                <tr><td colSpan={totalColunas} className="px-6 py-10 text-center text-slate-400">Carregando dados...</td></tr>
+                <tr><td colSpan={totalColunas} className="px-6 py-10 text-center text-slate-500">Carregando dados...</td></tr>
               ) : itens.length === 0 ? (
-                <tr><td colSpan={totalColunas} className="px-6 py-10 text-center text-slate-400">{options.mensagemVazia}</td></tr>
+                <tr><td colSpan={totalColunas} className="px-6 py-10 text-center text-slate-500">{options.mensagemVazia}</td></tr>
               ) : itens.map((item) => (
                 <tr
                   key={item.id}
                   onClick={() => abrirDetalhes(item)}
-                  className="hover:bg-slate-100/50 even:bg-slate-50/50 transition-colors cursor-pointer"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    // Enter/Espaço na própria linha abre os detalhes (ignora teclas vindas dos botões internos)
+                    if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+                      e.preventDefault();
+                      abrirDetalhes(item);
+                    }
+                  }}
+                  className="hover:bg-slate-100/50 even:bg-slate-50/50 transition-colors cursor-pointer focus-visible:outline-offset-[-2px]"
                 >
                   {colunas.map((col) => (
                     <td key={col.key} className="px-6 py-4 text-sm text-slate-600 whitespace-nowrap">
@@ -652,6 +653,7 @@ export const GestaoAcesso: React.FC = () => {
               {/* Link para o painel de indicadores (somente Gestor Master) */}
               <Link
                 to="/gestao-acesso/indicadores"
+                aria-label="Painel de Indicadores"
                 className="ml-auto mb-1.5 flex items-center gap-2 px-4 py-2 text-sm font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-xl transition-colors"
               >
                 <BarChart3 size={16} />
@@ -665,7 +667,7 @@ export const GestaoAcesso: React.FC = () => {
               {/* Busca por ID / Nº do chamado (inclui concluídos) */}
               <form onSubmit={handleBuscar} className="flex flex-col md:flex-row gap-2 md:items-center">
                 <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                   <input
                     type="text"
                     placeholder="Buscar por ID ou Nº do chamado (inclui concluídos)..."
@@ -710,14 +712,14 @@ export const GestaoAcesso: React.FC = () => {
 
               {/* Filtros da fila */}
               <div className="flex flex-col lg:flex-row lg:items-end gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-                <div className="flex items-center gap-2 text-slate-400 lg:pb-2.5">
+                <div className="flex items-center gap-2 text-slate-500 lg:pb-2.5">
                   <Filter size={18} />
                   <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">Filtros</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 flex-1">
                   <div className="space-y-1">
-                    <label className={labelClass}>Estado</label>
-                    <Select
+                    <label htmlFor="acs-estado" className={labelClass}>Estado</label>
+                    <Select id="acs-estado"
                       className={`${inputClass}`}
                       value={filtros.estado}
                       onChange={(e) => setFiltros({ ...filtros, estado: e.target.value, cidade: '' })}
@@ -729,8 +731,8 @@ export const GestaoAcesso: React.FC = () => {
                     </Select>
                   </div>
                   <div className="space-y-1">
-                    <label className={labelClass}>Cidade</label>
-                    <Select
+                    <label htmlFor="acs-cidade" className={labelClass}>Cidade</label>
+                    <Select id="acs-cidade"
                       className={`${inputClass}`}
                       value={filtros.cidade}
                       onChange={(e) => setFiltros({ ...filtros, cidade: e.target.value })}
@@ -742,8 +744,8 @@ export const GestaoAcesso: React.FC = () => {
                     </Select>
                   </div>
                   <div className="space-y-1">
-                    <label className={labelClass}>Solicitante</label>
-                    <input
+                    <label htmlFor="acs-solicitante" className={labelClass}>Solicitante</label>
+                    <input id="acs-solicitante"
                       type="text"
                       placeholder="Nome ou matrícula"
                       className={inputClass}
@@ -752,8 +754,8 @@ export const GestaoAcesso: React.FC = () => {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className={labelClass}>Status</label>
-                    <Select
+                    <label htmlFor="acs-status" className={labelClass}>Status</label>
+                    <Select id="acs-status"
                       className={`${inputClass}`}
                       value={filtros.status}
                       onChange={(e) => setFiltros({ ...filtros, status: e.target.value })}
@@ -814,7 +816,7 @@ export const GestaoAcesso: React.FC = () => {
         <Modal onClose={() => { if (!isSaving) fecharFormulario(); }} labelledBy="titulo-formulario-acesso" className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
           <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100">
             <h3 id="titulo-formulario-acesso" className="text-xl font-bold text-slate-800">{TIPO_LABEL[formularioAberto]}</h3>
-            <button type="button" onClick={fecharFormulario} disabled={isSaving} aria-label="Fechar" className="text-slate-400 hover:text-slate-600 transition-colors">
+            <button type="button" onClick={fecharFormulario} disabled={isSaving} aria-label="Fechar" className="text-slate-500 hover:text-slate-600 transition-colors">
               <X size={24} />
             </button>
           </div>
@@ -822,8 +824,8 @@ export const GestaoAcesso: React.FC = () => {
           <form onSubmit={handleCriarSolicitacao} className="p-6 overflow-y-auto space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className={labelClass}>Estado</label>
-                <Select
+                <label htmlFor="acs-estado-2" className={labelClass}>Estado</label>
+                <Select id="acs-estado-2"
                   required
                   className={`${inputClass}`}
                   value={formData.estado}
@@ -836,8 +838,8 @@ export const GestaoAcesso: React.FC = () => {
                 </Select>
               </div>
               <div className="space-y-1">
-                <label className={labelClass}>Cidade</label>
-                <Select
+                <label htmlFor="acs-cidade-2" className={labelClass}>Cidade</label>
+                <Select id="acs-cidade-2"
                   required
                   disabled={!formData.estado}
                   className={`${inputClass} disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed`}
@@ -851,8 +853,8 @@ export const GestaoAcesso: React.FC = () => {
                 </Select>
               </div>
               <div className="space-y-1">
-                <label className={labelClass}>Matrícula do Técnico</label>
-                <input
+                <label htmlFor="acs-matricula-do-tecnico" className={labelClass}>Matrícula do Técnico</label>
+                <input id="acs-matricula-do-tecnico"
                   type="text" required maxLength={20} placeholder="A80xxxx"
                   className={`${inputClass} uppercase`}
                   value={formData.matricula}
@@ -860,8 +862,8 @@ export const GestaoAcesso: React.FC = () => {
                 />
               </div>
               <div className="space-y-1">
-                <label className={labelClass}>Empresa</label>
-                <input
+                <label htmlFor="acs-empresa" className={labelClass}>Empresa</label>
+                <input id="acs-empresa"
                   type="text" required maxLength={50} placeholder="Ex: TELEMONT"
                   className={`${inputClass} uppercase`}
                   value={formData.empresa}
@@ -869,8 +871,8 @@ export const GestaoAcesso: React.FC = () => {
                 />
               </div>
               <div className="md:col-span-2 space-y-1">
-                <label className={labelClass}>Nome do Técnico</label>
-                <input
+                <label htmlFor="acs-nome-do-tecnico" className={labelClass}>Nome do Técnico</label>
+                <input id="acs-nome-do-tecnico"
                   type="text" required maxLength={100} placeholder="Nome completo do técnico"
                   className={`${inputClass} uppercase`}
                   value={formData.nome}
@@ -881,8 +883,8 @@ export const GestaoAcesso: React.FC = () => {
               {formularioAberto === 'acesso' && (
                 <>
                   <div className="space-y-1">
-                    <label className={labelClass}>E-mail (Opcional)</label>
-                    <input
+                    <label htmlFor="acs-e-mail-opcional" className={labelClass}>E-mail (Opcional)</label>
+                    <input id="acs-e-mail-opcional"
                       type="email" maxLength={100} placeholder="nome@empresa.com.br"
                       className={inputClass}
                       value={formData.email}
@@ -890,8 +892,8 @@ export const GestaoAcesso: React.FC = () => {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className={labelClass}>Telefone</label>
-                    <input
+                    <label htmlFor="acs-telefone" className={labelClass}>Telefone</label>
+                    <input id="acs-telefone"
                       type="text" inputMode="numeric" required maxLength={20} placeholder="Apenas números. Ex: 67999999999"
                       className={inputClass}
                       value={formData.telefone}
@@ -899,8 +901,8 @@ export const GestaoAcesso: React.FC = () => {
                     />
                   </div>
                   <div className="md:col-span-2 space-y-1">
-                    <label className={labelClass}>Observação (Opcional)</label>
-                    <textarea
+                    <label htmlFor="acs-observacao-opcional" className={labelClass}>Observação (Opcional)</label>
+                    <textarea id="acs-observacao-opcional"
                       rows={2}
                       maxLength={150}
                       placeholder="Informe os sistemas nos quais deseja acesso..."
@@ -908,7 +910,7 @@ export const GestaoAcesso: React.FC = () => {
                       value={formData.observacao}
                       onChange={(e) => setFormData({ ...formData, observacao: e.target.value })}
                     />
-                    <div className="text-[10px] text-right text-slate-400 mt-1 mr-1 font-medium">
+                    <div className="text-[10px] text-right text-slate-500 mt-1 mr-1 font-medium">
                       {formData.observacao.length} / 150 caracteres
                     </div>
                   </div>
@@ -949,7 +951,7 @@ export const GestaoAcesso: React.FC = () => {
               <h3 id="titulo-detalhes-solicitacao" className="text-xl font-bold text-slate-800">{TIPO_LABEL[selected.tipo]}</h3>
               <p className="text-xs text-slate-500 font-mono mt-0.5">ID: #{formatId(selected.id)}</p>
             </div>
-            <button type="button" onClick={closeDetalhes} aria-label="Fechar" className="text-slate-400 hover:text-slate-600 transition-colors p-1 hover:bg-white rounded-full">
+            <button type="button" onClick={closeDetalhes} aria-label="Fechar" className="text-slate-500 hover:text-slate-600 transition-colors p-1 hover:bg-white rounded-full">
               <X size={24} />
             </button>
           </div>
@@ -958,7 +960,7 @@ export const GestaoAcesso: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Status */}
               <div className="md:col-span-2 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status Atual</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Status Atual</span>
                 <div className={`mt-2 w-fit flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold ${getStatusStyle(selected.status)}`}>
                   {getStatusIcon(selected.status)}
                   {selected.status}
@@ -967,37 +969,37 @@ export const GestaoAcesso: React.FC = () => {
 
               {/* Dados informados: matrícula e nome são do técnico, não de quem abriu */}
               <div className="space-y-1 px-1">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Nome do Técnico</p>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Nome do Técnico</p>
                 <p className="text-slate-700 font-medium">{selected.nome}</p>
               </div>
               <div className="space-y-1 px-1">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Matrícula do Técnico</p>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Matrícula do Técnico</p>
                 <p className="text-slate-700 font-medium">{selected.matricula}</p>
               </div>
               <div className="md:col-span-2 space-y-1 px-1">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Solicitado por</p>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Solicitado por</p>
                 <p className="text-slate-700 font-medium">{selected.nome_solicitante} ({selected.matricula_solicitante})</p>
               </div>
               <div className="space-y-1 px-1">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Empresa</p>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Empresa</p>
                 <p className="text-slate-700 font-medium">{selected.empresa}</p>
               </div>
               <div className="space-y-1 px-1">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Estado / Cidade</p>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Estado / Cidade</p>
                 <p className="text-slate-700 font-medium">{selected.estado} • {selected.cidade}</p>
               </div>
               {selected.tipo === 'acesso' && (
                 <>
                   <div className="space-y-1 px-1">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">E-mail</p>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">E-mail</p>
                     <p className="text-slate-700 font-medium">{selected.email || 'Não informado'}</p>
                   </div>
                   <div className="space-y-1 px-1">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Telefone</p>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Telefone</p>
                     <p className="text-slate-700 font-medium">{selected.telefone}</p>
                   </div>
                   <div className="md:col-span-2 space-y-2">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">Sistemas Solicitados</p>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider px-1">Sistemas Solicitados</p>
                     <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                       <p className="text-sm text-slate-600 italic">{selected.observacao || 'Nenhuma observação informada.'}</p>
                     </div>
@@ -1013,8 +1015,8 @@ export const GestaoAcesso: React.FC = () => {
                     Tratativa
                   </p>
                   <div className="space-y-1">
-                    <label className={labelClass}>ID do Chamado</label>
-                    <input
+                    <label htmlFor="acs-id-do-chamado" className={labelClass}>ID do Chamado</label>
+                    <input id="acs-id-do-chamado"
                       type="text" maxLength={50} placeholder="Nº do chamado aberto"
                       className={inputClass}
                       value={tratativa.id_chamado}
@@ -1022,8 +1024,8 @@ export const GestaoAcesso: React.FC = () => {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className={labelClass}>Responsável pela Aprovação</label>
-                    <input
+                    <label htmlFor="acs-responsavel-pela-aprovacao" className={labelClass}>Responsável pela Aprovação</label>
+                    <input id="acs-responsavel-pela-aprovacao"
                       type="text" maxLength={100} placeholder="Nome de quem aprovou"
                       className={`${inputClass} uppercase`}
                       value={tratativa.responsavel_aprovacao}
@@ -1031,29 +1033,29 @@ export const GestaoAcesso: React.FC = () => {
                     />
                   </div>
                   <div className="md:col-span-2 space-y-1">
-                    <label className={labelClass}>Sistemas / Solicitações</label>
-                    <TagInput
+                    <label htmlFor="acs-sistemas-solicitacoes" className={labelClass}>Sistemas / Solicitações</label>
+                    <TagInput id="acs-sistemas-solicitacoes"
                       value={tratativa.sistemas_tags}
                       onChange={(tags) => setTratativa({ ...tratativa, sistemas_tags: tags })}
                       placeholder="Digite e pressione Enter. Ex: Sistema: Portal de Material"
                     />
                   </div>
                   <div className="md:col-span-2 space-y-1">
-                    <label className={labelClass}>Observação de Andamento (Opcional)</label>
-                    <textarea
+                    <label htmlFor="acs-observacao-de-andamento-opcional" className={labelClass}>Observação de Andamento (Opcional)</label>
+                    <textarea id="acs-observacao-de-andamento-opcional"
                       rows={2} maxLength={150}
                       placeholder="Ex: aguardando liberação do Portal de Material para pedir o Toa Técnico"
                       className={`${inputClass} resize-none`}
                       value={tratativa.observacao_tratativa}
                       onChange={(e) => setTratativa({ ...tratativa, observacao_tratativa: e.target.value })}
                     />
-                    <div className="text-[10px] text-right text-slate-400 mr-1 font-medium">
+                    <div className="text-[10px] text-right text-slate-500 mr-1 font-medium">
                       {tratativa.observacao_tratativa.length} / 150 caracteres
                     </div>
                   </div>
                   <div className="md:col-span-2 space-y-1">
-                    <label className={labelClass}>Alterar Status</label>
-                    <Select
+                    <label htmlFor="acs-alterar-status" className={labelClass}>Alterar Status</label>
+                    <Select id="acs-alterar-status"
                       className={`${inputClass}`}
                       value={tratativa.status}
                       onChange={(e) => setTratativa({ ...tratativa, status: e.target.value as typeof tratativa.status })}
@@ -1065,8 +1067,8 @@ export const GestaoAcesso: React.FC = () => {
                   </div>
                   {tratativa.status === 'Concluído' && (
                     <div className="md:col-span-2 space-y-1">
-                      <label className={labelClass}>Observação Final</label>
-                      <textarea
+                      <label htmlFor="acs-observacao-final" className={labelClass}>Observação Final</label>
+                      <textarea id="acs-observacao-final"
                         rows={2} maxLength={150} required
                         placeholder="Resumo final do que foi liberado"
                         className={`${inputClass} resize-none`}
@@ -1075,7 +1077,7 @@ export const GestaoAcesso: React.FC = () => {
                       />
                       <div className="flex justify-between text-[10px] font-medium mx-1">
                         <span className="text-amber-600">Após concluir, a solicitação não poderá ser reaberta.</span>
-                        <span className="text-slate-400">{tratativa.observacao_final.length} / 150 caracteres</span>
+                        <span className="text-slate-500">{tratativa.observacao_final.length} / 150 caracteres</span>
                       </div>
                     </div>
                   )}
@@ -1093,8 +1095,8 @@ export const GestaoAcesso: React.FC = () => {
                     <p>O reset é realizado no sistema externo; registre aqui apenas o parecer.</p>
                   </div>
                   <div className="space-y-1">
-                    <label className={labelClass}>Parecer</label>
-                    <textarea
+                    <label htmlFor="acs-parecer" className={labelClass}>Parecer</label>
+                    <textarea id="acs-parecer"
                       rows={3} maxLength={150}
                       placeholder="Descreva o que foi feito no sistema externo"
                       className={`${inputClass} resize-none`}
@@ -1103,7 +1105,7 @@ export const GestaoAcesso: React.FC = () => {
                     />
                     <div className="flex justify-between text-[10px] font-medium mx-1">
                       <span className="text-amber-600">Após concluir, a solicitação não poderá ser reaberta.</span>
-                      <span className="text-slate-400">{tratativa.observacao_tratativa.length} / 150 caracteres</span>
+                      <span className="text-slate-500">{tratativa.observacao_tratativa.length} / 150 caracteres</span>
                     </div>
                   </div>
                 </div>
@@ -1112,16 +1114,16 @@ export const GestaoAcesso: React.FC = () => {
               {/* Tratativa do Gestor Master (somente leitura) */}
               {!podeTratar && (selected.id_chamado ||selected.responsavel_aprovacao || selected.sistemas_tags?.length || selected.observacao_tratativa || selected.observacao_final) && (
                 <div className="md:col-span-2 border-t border-slate-100 pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <p className="md:col-span-2 text-xs font-bold text-slate-400 uppercase tracking-wider px-1">Tratativa</p>
+                  <p className="md:col-span-2 text-xs font-bold text-slate-500 uppercase tracking-wider px-1">Tratativa</p>
                   {selected.id_chamado && (
                     <div className="space-y-1 px-1">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">ID do Chamado</p>
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">ID do Chamado</p>
                       <p className="text-slate-700 font-mono font-bold">{selected.id_chamado}</p>
                     </div>
                   )}
                   {selected.responsavel_aprovacao && (
                     <div className="space-y-1 px-1">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Responsável pela Aprovação</p>
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Responsável pela Aprovação</p>
                       <p className="text-slate-700 font-medium">{selected.responsavel_aprovacao}</p>
                     </div>
                   )}
@@ -1137,13 +1139,13 @@ export const GestaoAcesso: React.FC = () => {
                   )}
                   {selected.observacao_tratativa && (
                     <div className="md:col-span-2 space-y-1 px-1">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{selected.tipo === 'reset_senha' ? 'Parecer' : 'Observação'}</p>
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">{selected.tipo === 'reset_senha' ? 'Parecer' : 'Observação'}</p>
                       <p className="text-sm text-slate-600">{selected.observacao_tratativa}</p>
                     </div>
                   )}
                   {selected.observacao_final && (
                     <div className="md:col-span-2 space-y-1 px-1">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Observação Final</p>
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Observação Final</p>
                       <p className="text-sm text-slate-600">{selected.observacao_final}</p>
                     </div>
                   )}
@@ -1152,17 +1154,17 @@ export const GestaoAcesso: React.FC = () => {
 
               {/* Histórico da Solicitação */}
               <div className="md:col-span-2 border-t border-slate-100 pt-6">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1 mb-3 flex items-center gap-2">
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider px-1 mb-3 flex items-center gap-2">
                   <History size={14} />
                   Histórico
                 </p>
                 {loadingDetalhe ? (
-                  <div className="flex items-center gap-2 text-sm text-slate-400 px-1">
+                  <div className="flex items-center gap-2 text-sm text-slate-500 px-1">
                     <Loader2 size={16} className="animate-spin" />
                     Carregando histórico...
                   </div>
                 ) : !selected.historico?.length ? (
-                  <p className="text-sm text-slate-400 italic px-1">Nenhum registro de histórico.</p>
+                  <p className="text-sm text-slate-500 italic px-1">Nenhum registro de histórico.</p>
                 ) : (
                   <ol className="relative border-l border-slate-200 ml-2 space-y-5">
                     {selected.historico.map((h) => (

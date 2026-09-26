@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Tag, X } from 'lucide-react';
 
 interface TagInputProps {
+  id?: string;
   value: string[];
   onChange: (tags: string[]) => void;
   placeholder?: string;
@@ -10,7 +11,7 @@ interface TagInputProps {
 }
 
 // Campo de tags: Enter ou vírgula adiciona, "x" remove, Backspace com campo vazio remove a última
-export const TagInput: React.FC<TagInputProps> = ({ value, onChange, placeholder, maxLength = 100, disabled }) => {
+export const TagInput: React.FC<TagInputProps> = ({ id, value, onChange, placeholder, maxLength = 100, disabled }) => {
   const [texto, setTexto] = useState('');
 
   const adicionar = () => {
@@ -39,17 +40,18 @@ export const TagInput: React.FC<TagInputProps> = ({ value, onChange, placeholder
     >
       {value.map((tag) => (
         <span key={tag} className="flex items-center gap-1 pl-2.5 pr-1.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full text-xs font-bold">
-          <Tag size={12} />
+          <Tag size={12} aria-hidden="true" />
           {tag}
           {!disabled && (
-            <button type="button" onClick={() => remover(tag)} className="p-0.5 rounded-full hover:bg-indigo-100" title="Remover">
-              <X size={12} />
+            <button type="button" onClick={() => remover(tag)} className="p-0.5 rounded-full hover:bg-indigo-100" aria-label={`Remover ${tag}`}>
+              <X size={12} aria-hidden="true" />
             </button>
           )}
         </span>
       ))}
       {!disabled && (
         <input
+          id={id}
           type="text"
           maxLength={maxLength}
           placeholder={value.length ? '' : placeholder}

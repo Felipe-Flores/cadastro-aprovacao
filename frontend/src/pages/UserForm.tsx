@@ -1,7 +1,7 @@
 import React, { useEffect, useContext, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AppLayout } from '../components/AppLayout';
-import { Toast, type ToastData } from '../components/Toast';
+import { Toast, useToast } from '../components/Toast';
 import { AuthContext } from '../contexts/AuthContext';
 import api from '../api/api';
 import {
@@ -59,7 +59,7 @@ export const UserForm: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [showSenha, setShowSenha] = useState(false);
   const [showConfirmarSenha, setShowConfirmarSenha] = useState(false);
-  const [toast, setToast] = useState<ToastData | null>(null);
+  const { toast, showToast } = useToast();
 
   useEffect(() => {
     if (user && user.cargo !== 'gestor-master') {
@@ -84,10 +84,6 @@ export const UserForm: React.FC = () => {
     fetchUsuarios();
   }, [logout, navigate]);
 
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
 
   const limparFormulario = () => {
     setFormData(initialFormData);
@@ -453,9 +449,11 @@ export const UserForm: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => setShowSenha(!showSenha)}
+                          aria-label={showSenha ? 'Ocultar senha' : 'Mostrar senha'}
+                          aria-pressed={showSenha}
                           className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-surface-container rounded-full transition-colors text-outline"
                         >
-                          {showSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+                          {showSenha ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
                         </button>
                       </div>
                     </div>
@@ -484,9 +482,11 @@ export const UserForm: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => setShowConfirmarSenha(!showConfirmarSenha)}
+                          aria-label={showConfirmarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+                          aria-pressed={showConfirmarSenha}
                           className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-surface-container rounded-full transition-colors text-outline"
                         >
-                          {showConfirmarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+                          {showConfirmarSenha ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
                         </button>
                       </div>
                       {(senhasNaoCoincidem || errors.confirmarSenha) && (
