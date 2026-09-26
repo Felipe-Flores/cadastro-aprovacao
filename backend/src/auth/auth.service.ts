@@ -35,6 +35,8 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
       nome: user.nome,
       cargo: user.cargo,
+      matricula: user.matricula,
+      empresa: user.empresa,
     };
   }
 }

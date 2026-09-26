@@ -5,6 +5,9 @@ import { User } from './users/user.entity';
 import { UsersModule } from './users/users.module';
 import { Aprovacao } from './aprovacoes/aprovacao.entity';
 import { AprovacoesModule } from './aprovacoes/aprovacoes.module';
+import { SolicitacaoAcesso } from './gestao-acesso/solicitacao-acesso.entity';
+import { SolicitacaoAcessoHistorico } from './gestao-acesso/solicitacao-acesso-historico.entity';
+import { GestaoAcessoModule } from './gestao-acesso/gestao-acesso.module';
 import { AuthModule } from './auth/auth.module';
 import { AppController } from './app.controller';
 
@@ -30,7 +33,7 @@ import { AppController } from './app.controller';
           type: 'postgres' as const,
           url: databaseUrl,
           autoLoadEntities: true,
-          entities: [User, Aprovacao],
+          entities: [User, Aprovacao, SolicitacaoAcesso, SolicitacaoAcessoHistorico],
           synchronize: !isProduction,
           logging: !isProduction,
           ...(useSsl
@@ -46,6 +49,7 @@ import { AppController } from './app.controller';
     UsersModule,
     AprovacoesModule,
     AuthModule,
+    GestaoAcessoModule,
   ],
   controllers: [AppController],
 })

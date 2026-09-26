@@ -19,8 +19,8 @@ export const Login: React.FC = () => {
     setError(null);
     try {
       const response = await api.post('/auth/login', { matricula, senha });
-      const { access_token, nome, cargo } = response.data;
-      login(access_token, { nome, cargo, matricula });
+      const { access_token, nome, cargo, empresa } = response.data;
+      login(access_token, { nome, cargo, matricula, empresa });
       navigate('/dashboard'); // <--- Redireciona para a Dashboard
     } catch (err: any) {
       // Captura a mensagem do NestJS ou usa uma padrão

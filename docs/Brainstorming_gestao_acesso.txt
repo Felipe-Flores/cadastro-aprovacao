@@ -1,0 +1,25 @@
+- Projeto Solicitacao de acesso e reset de senha
+
+ - na tela inicial no topo da pagina quero que crie um menu gestao de acesso, regras:
+
+	-- o usuario ao clicar no menu gestao de acesso, será encaminhado para uma nova tela, onde vai ter uma tabela com todos os seus pedido de acesso;
+	-- nessa tela na parte superior central, tera um botao de "Solicitacao de Acesso" e outro botao de "Reset de Senha";
+		-- ao clicar no Solicitacao de acesso deve abrir um formulario, onde o usuario deve preencher os seguinte campos: 
+			ID(PRIMARI KEY, DEVE SER PREENCHIDA AUTOMATICAMENTE no minimo 4 caracteres), 
+			Matricula(NOT NULL, VARCHAR[20], NAO DEVE TER ESPACO NO COMECO E NEM NO FIM DO NOME, E SE FOR LETRA DEVE FICAR MAIUSCULA MESMO QUE O USUARIO COLOCA MINUSCULO),
+			Nome(NOT NULL, VARCHAR[100], DEVE FICAR TAMBEM MAIUSCULA),
+			Empresa(NOT NULL, VARCHAR[50], NAO DEVE TER ESPACO NO COMECO E NEM NO FIM E DEVE SER TUDO MAIUSCULO),
+			E-mail,
+			Telefone(NOT NULL NUMBER),
+			Cidade(NOT NULL, VARCHAR[50], esse campo no formulario deve ser um filtro suspenso, com as cidades: Campo Grande, Tres Lagoas, Dourados, Tangara da Serra, Cuiaba, Varzea Grande, Nova Mutum, Sinop, Rondonopolis, Lucas do Rio Verde, Campo Verde, Ji Parana, Primavera do Leste),
+			Estado(not null, varchar[50], esse campo no formulario deve ser um filtro suspenso, com os estados do centro oeste: MT, MS, GO, DF);
+			Observação(varchar[150], nesse campo o usuario deve colocar qual sistema ele quer pedir os acessos),
+		-- depois de preencher todo o formulario, ele deve clicar no botao "Enviar", deve ter tambem um botao de "Cancelar", caso ele nao queira proseguir com o pedido;
+		-- apos clicar no Enviar essa solicitacao vai cair em uma fila para os gestores master aprovarem, agora essa atividade vai para uma tabela que sera a fila para os gestores master tratar, esta tabela deve ter as colunas Estado, Cidade, Solicitante, Empresa, status(Nao iniciado, Iniciado, Pendente, Concluido), ao lado do status deve ter um botao para iniciar aquela atividade, quando clica no iniciar muda para o status de iniciado, e abre a tela de modal onde o gestor master vai ver todos os detalhes da atividade que foi pedido, apos a tratativa o gestor master deve preencher nesse formulario o ID do chamado aberto, o nome do responsavel para aprovacao, uma observacao do que foi pedido esse campo deve ficar como uma tag, ex: Sistema: Portal de Material, Toa Tecnico, e mudar o status de Iniciado para Pendente, logo apos clicar em salvar, aquele atividade vai ficar Pendente até ela ser Concluida, apos a conclusao, o gestor master entra naquela ativade e muda o status para Concluido, onde ele vai colocar uma observacao final de varchar[150], pode acontecer dele deixar como pendente de alguns sistema que ele pediu, apos concluir esses sistemas, depois pedir mais sistema que dependeriam daqueles sistemas iniciais.
+Nesse modal deve ficar o historico de tudo que foi feito desde o inicio ate a concluidao da atividade.
+	-- se o usuario clicar no reset de senha, deve abrir um formulario para preencher Estado, Cidade, Empresa, Matricula e Nome;
+	-- essa atividade de reset vai cair tambem na tela para o gestor master iniciar, apos o gestor master iniciar a atividade vai abrir o modal com os detalhes da atividade, o gestor vai fazer o reset , preencher a observacao de varchar [150] e modificar o status para concluido.
+	-- essa tela de gestao de acesso deve ter os filtros por estado, por cidade, por solicitante, e por status;
+	-- a tabela deve ter ordenacao por status;
+	-- a tabela deve ordenar automaticamente primeiro os status que estao como "Nao Iniciado" depois "Pendente";
+	-- na tela do gestor master assim que a atividade for concluida, ele deve sumir da tela, porem se o gestor quiser pesquisar o que foi concluida ele tenha um campo onde ele joga o ID do chamado.

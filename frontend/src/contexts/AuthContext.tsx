@@ -4,6 +4,7 @@ interface User {
   nome: string;
   cargo: string;
   matricula: string;
+  empresa?: string;
 }
 
 interface AuthContextData {
