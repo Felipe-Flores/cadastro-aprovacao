@@ -81,7 +81,7 @@ export const Login: React.FC = () => {
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm animate-in fade-in slide-in-from-top-1">
+            <div role="alert" className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm animate-in fade-in slide-in-from-top-1">
               <AlertCircle size={18} />
               <span className="font-medium">{error}</span>
             </div>

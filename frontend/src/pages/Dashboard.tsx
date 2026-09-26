@@ -4,6 +4,8 @@ import { AuthContext } from '../contexts/AuthContext';
 import api from '../api/api';
 import { Select } from '../components/Select';
 import { AppLayout } from '../components/AppLayout';
+import { Modal } from '../components/Modal';
+import { Toast, type ToastData } from '../components/Toast';
 import { getInitials } from '../utils/getInitials';
 import * as XLSX from 'xlsx';
 import { 
@@ -18,8 +20,6 @@ import {
   Loader2,
   Search,
   ArrowUpDown,
-  Check,
-  AlertCircle,
   Download,
 } from 'lucide-react';
 
@@ -128,7 +128,7 @@ export const Dashboard: React.FC = () => {
   const [sortConfig, setSortConfig] = useState<{ key: keyof Aprovacao; direction: 'asc' | 'desc' } | null>(null);
 
   // Estado para o Toast (Notificação)
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [toast, setToast] = useState<ToastData | null>(null);
   
   // Estados para o Modal de Confirmação de Reprovação
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
@@ -348,22 +348,10 @@ export const Dashboard: React.FC = () => {
   // 7 colunas de dados + "Ações" para gestores
   const totalColunas = user?.cargo === 'gestor' || user?.cargo === 'gestor-master' ? 8 : 7;
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      // Fecha apenas o modal do topo (a confirmação de reprovação fica acima dos demais)
-      if (isRejectModalOpen) {
-        setIsRejectModalOpen(false);
-        setItemToReject(null);
-      } else if (isDetailsModalOpen) {
-        closeDetailsModal();
-      } else if (isModalOpen) {
-        closeModal();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isModalOpen, isRejectModalOpen, isDetailsModalOpen]);
+  const fecharReprovacao = () => {
+    setIsRejectModalOpen(false);
+    setItemToReject(null);
+  };
 
   useEffect(() => {
     // Se não houver usuário logado (token expirou ou não existe), volta para o login
@@ -561,390 +549,368 @@ export const Dashboard: React.FC = () => {
 
       {/* Modal de Nova Atividade */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100">
-              <h3 className="text-xl font-bold text-slate-800">Cadastrar Nova Atividade</h3>
-              <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 transition-colors">
-                <X size={24} />
-              </button>
-            </div>
-            
-            <form onSubmit={handleCreateActivity} className="p-6 overflow-y-auto space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2 space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Atividade</label>
-                  <input
-                    type="text" required placeholder="Digite numero da atividade Ex: 18798549"
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                    value={formData.atividade} onChange={(e) => setFormData({...formData, atividade: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Número PON</label>
-                  <input
-                    type="text" required placeholder="Pon: 8-PKd85"
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                    value={formData.pon} onChange={(e) => setFormData({...formData, pon: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Cidade</label>
-                  <input
-                    type="text" required placeholder="Ex: Campo Grande"
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 uppercase rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                    value={formData.cidade} onChange={(e) => setFormData({...formData, cidade: e.target.value.toUpperCase()})}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Detalhe da Atividade</label>
-                  <Select
-                    required
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                    value={formData.detalhe_atividade}
-                    onChange={(e) => setFormData({...formData, detalhe_atividade: e.target.value})}
-                  >
-                    <option value="" disabled>Selecione o tipo</option>
-                    <option value="Defeito">Defeito</option>
-                    <option value="Instalação/ME">Instalação/ME</option>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">UF</label>
-                  <Select 
-                    required
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                    value={formData.uf} 
-                    onChange={(e) => setFormData({...formData, uf: e.target.value})}
-                  >
-                    <option value="" disabled>Selecione a UF</option>
-                    <option value="MS">MS</option>
-                    <option value="MT">MT</option>
-                    <option value="RO">RO</option>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Data Execução</label>
-                  <input
-                    type="date" required
-                    max={getLocalToday()}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                    value={formData.data_execucao} onChange={(e) => setFormData({...formData, data_execucao: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Matrícula Técnico</label>
-                  <input 
-                    type="text" required placeholder="A80xxxx"
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 uppercase rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                    value={formData.matricula_tecnico} onChange={(e) => setFormData({...formData, matricula_tecnico: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Nome Técnico</label>
-                  <input 
-                    type="text" required placeholder="Nome completo"
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 uppercase rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                    value={formData.tecnico} onChange={(e) => setFormData({...formData, tecnico: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Time Slot</label>
-                  <Select 
-                    required
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                    value={formData.time_slot} 
-                    onChange={(e) => setFormData({...formData, time_slot: e.target.value})}
-                  >
-                    <option value="" disabled>Selecione o horário</option>
-                    {formData.detalhe_atividade === 'Defeito' ? (
-                      <>
-                        <option value="08:30-12:30">08:30-12:30</option>
-                        <option value="12:30-18:00">12:30-18:00</option>
-                        <option value="SLA">SLA</option>
-                      </>
-                    ) : (
-                      <>
-                        <option value="08:30 as 10:30">08:30-10:30</option>
-                        <option value="10:30 as 12:00">10:30-12:00</option>
-                        <option value="14:00 as 16:00">14:00-16:00</option>
-                        <option value="16:00 as 18:00">16:00-18:00</option>
-                        <option value="SLA">SLA</option>
-                      </>
-                    )}
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Atividade está Dentro dos 30min?</label>
-                  <select 
-                    disabled
-                    className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none text-slate-500 font-bold cursor-not-allowed"
-                    value={formData.dentro_time_slot} 
-                  >
-                    <option value="Sim">Sim</option>
-                    <option value="Não">Não</option>
-                  </select>
-                </div>
-                <div className="md:col-span-2 space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Motivo</label>
-                  <Select 
-                    required
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                    value={formData.motivo} 
-                    onChange={(e) => setFormData({...formData, motivo: e.target.value})}
-                  >
-                    <option value="" disabled>Selecione o motivo</option>
-                    <option value="Atividade complexa">Atividade complexa</option>
-                    <option value="Falta de controle">Falta de controle</option>
-                    <option value="Atividade injetada vencida">Atividade injetada vencida</option>
-                    <option value="Erro Sistemico">Erro Sistemico</option>
-                    <option value="Erro de Cadastro">Erro de Cadastro</option>
-                    <option value="Ordem Voltou para o Bucket">Roterizador moveu para o bucket</option>
-                  </Select>
-                </div>
-                <div className="md:col-span-2 space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Observação (Opcional)</label>
-                  <textarea 
-                    rows={2}
-                    maxLength={255}
-                    placeholder="Descreva brevemente detalhes relevantes da atividade..."
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all resize-none"
-                    value={formData.observacao} 
-                    onChange={(e) => setFormData({...formData, observacao: e.target.value})}
-                  />
-                  <div className="text-[10px] text-right text-slate-400 mt-1 mr-1 font-medium">
-                    {formData.observacao.length} / 255 caracteres
-                  </div>
-                </div>
+        <Modal onClose={closeModal} labelledBy="titulo-nova-atividade" className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100">
+            <h3 id="titulo-nova-atividade" className="text-xl font-bold text-slate-800">Cadastrar Nova Atividade</h3>
+            <button type="button" onClick={closeModal} aria-label="Fechar" className="text-slate-400 hover:text-slate-600 transition-colors">
+              <X size={24} />
+            </button>
+          </div>
+          
+          <form onSubmit={handleCreateActivity} className="p-6 overflow-y-auto space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2 space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Atividade</label>
+                <input
+                  type="text" required placeholder="Digite numero da atividade Ex: 18798549"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                  value={formData.atividade} onChange={(e) => setFormData({...formData, atividade: e.target.value})}
+                />
               </div>
-              <div className="flex gap-3 pt-4">
-                <button 
-                  type="button" onClick={closeModal}
-                  className="flex-1 px-4 py-3 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all"
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Número PON</label>
+                <input
+                  type="text" required placeholder="Pon: 8-PKd85"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                  value={formData.pon} onChange={(e) => setFormData({...formData, pon: e.target.value})}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Cidade</label>
+                <input
+                  type="text" required placeholder="Ex: Campo Grande"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 uppercase rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                  value={formData.cidade} onChange={(e) => setFormData({...formData, cidade: e.target.value.toUpperCase()})}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Detalhe da Atividade</label>
+                <Select
+                  required
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                  value={formData.detalhe_atividade}
+                  onChange={(e) => setFormData({...formData, detalhe_atividade: e.target.value})}
                 >
-                  Cancelar
-                </button>
-                <button 
-                  type="submit"
-                  disabled={isSaving}
-                  className="flex-1 px-4 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all flex items-center justify-center gap-2 disabled:bg-indigo-300 disabled:shadow-none"
+                  <option value="" disabled>Selecione o tipo</option>
+                  <option value="Defeito">Defeito</option>
+                  <option value="Instalação/ME">Instalação/ME</option>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">UF</label>
+                <Select 
+                  required
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                  value={formData.uf} 
+                  onChange={(e) => setFormData({...formData, uf: e.target.value})}
                 >
-                  {isSaving ? (
+                  <option value="" disabled>Selecione a UF</option>
+                  <option value="MS">MS</option>
+                  <option value="MT">MT</option>
+                  <option value="RO">RO</option>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Data Execução</label>
+                <input
+                  type="date" required
+                  max={getLocalToday()}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                  value={formData.data_execucao} onChange={(e) => setFormData({...formData, data_execucao: e.target.value})}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Matrícula Técnico</label>
+                <input 
+                  type="text" required placeholder="A80xxxx"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 uppercase rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                  value={formData.matricula_tecnico} onChange={(e) => setFormData({...formData, matricula_tecnico: e.target.value})}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Nome Técnico</label>
+                <input 
+                  type="text" required placeholder="Nome completo"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 uppercase rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                  value={formData.tecnico} onChange={(e) => setFormData({...formData, tecnico: e.target.value})}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Time Slot</label>
+                <Select 
+                  required
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                  value={formData.time_slot} 
+                  onChange={(e) => setFormData({...formData, time_slot: e.target.value})}
+                >
+                  <option value="" disabled>Selecione o horário</option>
+                  {formData.detalhe_atividade === 'Defeito' ? (
                     <>
-                      <Loader2 size={18} className="animate-spin" />
-                      Salvando...
+                      <option value="08:30-12:30">08:30-12:30</option>
+                      <option value="12:30-18:00">12:30-18:00</option>
+                      <option value="SLA">SLA</option>
                     </>
                   ) : (
-                    'Salvar Atividade'
+                    <>
+                      <option value="08:30 as 10:30">08:30-10:30</option>
+                      <option value="10:30 as 12:00">10:30-12:00</option>
+                      <option value="14:00 as 16:00">14:00-16:00</option>
+                      <option value="16:00 as 18:00">16:00-18:00</option>
+                      <option value="SLA">SLA</option>
+                    </>
                   )}
-                </button>
+                </Select>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de Detalhes da Atividade */}
-      {isDetailsModalOpen && selectedAprovacao && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-              <div>
-                <h3 className="text-xl font-bold text-slate-800">Detalhes da Atividade</h3>
-                <p className="text-xs text-slate-500 font-mono mt-0.5">ID: #{selectedAprovacao.id}</p>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Atividade está Dentro dos 30min?</label>
+                <select 
+                  disabled
+                  className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:outline-none text-slate-500 font-bold cursor-not-allowed"
+                  value={formData.dentro_time_slot} 
+                >
+                  <option value="Sim">Sim</option>
+                  <option value="Não">Não</option>
+                </select>
               </div>
-              <button onClick={closeDetailsModal} className="text-slate-400 hover:text-slate-600 transition-colors p-1 hover:bg-white rounded-full">
-                <X size={24} />
-              </button>
-            </div>
-            
-            <div className="p-6 overflow-y-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Status e PON */}
-                <div className="flex flex-col gap-4">
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status Atual</span>
-                    <div className={`mt-2 w-fit flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold ${getStatusStyle(selectedAprovacao.status)}`}>
-                      {getStatusIcon(selectedAprovacao.status)}
-                      {selectedAprovacao.status}
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-1 px-1">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Número PON</p>
-                    <p className="text-lg font-mono font-bold text-indigo-600">{selectedAprovacao.pon}</p>
-                  </div>
-                  
-                  <div className="space-y-1 px-1">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Atividade (OS)</p>
-                    <p className="text-slate-700 font-medium">{selectedAprovacao.atividade}</p>
-                  </div>
-
-                  <div className="space-y-1 px-1">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Cidade</p>
-                    <p className="text-slate-700 font-medium">{selectedAprovacao.cidade}</p>
-                  </div>
-                  <div className="space-y-1 px-1">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Detalhe da Atividade</p>
-                    <p className="text-slate-700 font-medium">{selectedAprovacao.detalhe_atividade || 'Não informado'}</p>
-                  </div>
-                  <div className="space-y-1 px-1">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">UF</p>
-                    <p className="text-slate-700 font-medium">{selectedAprovacao.uf}</p>
-                  </div>
-                </div>
-
-                {/* Datas e Slot */}
-                <div className="flex flex-col gap-4">
-                  <div className="space-y-1 px-1">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Data de Execução</p>
-                    <div className="flex items-center gap-2 text-slate-700">
-                      <Clock size={16} className="text-slate-400" />
-                      <span className="font-semibold">{formatDate(selectedAprovacao.data_execucao)}</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1 px-1">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Janela / Time Slot</p>
-                    <p className="text-slate-700">{selectedAprovacao.time_slot} <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded border ${selectedAprovacao.dentro_time_slot === 'Sim' ? 'text-emerald-600 border-emerald-100' : 'text-red-600 border-red-100'}`}>Slot: {selectedAprovacao.dentro_time_slot}</span></p>
-                  </div>
-
-                  <div className="space-y-1 px-1">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Motivo da Solicitação</p>
-                    <p className="text-slate-700">{selectedAprovacao.motivo}</p>
-                  </div>
-                </div>
-
-                {/* Informações de Pessoal */}
-                <div className="md:col-span-2 border-t border-slate-100 pt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-indigo-50/30 p-4 rounded-xl border border-indigo-100/50">
-                      <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-3">Solicitante</p>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 text-sm font-bold">
-                          {getInitials(selectedAprovacao.nome_solicitante)}
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-slate-800">{selectedAprovacao.nome_solicitante}</p>
-                          <p className="text-xs text-slate-500">{selectedAprovacao.empresa} • {selectedAprovacao.matricula_solicitante}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Técnico em Campo</p>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center text-slate-500">
-                          <UserIcon size={20} />
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-slate-800">{selectedAprovacao.tecnico}</p>
-                          <p className="text-xs text-slate-500">Matrícula: {selectedAprovacao.matricula_tecnico}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Observações */}
-                <div className="md:col-span-2 space-y-2">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">Observações Adicionais</p>
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 min-h-[80px]">
-                    <p className="text-sm text-slate-600 italic">
-                      {selectedAprovacao.observacao || 'Nenhuma observação informada.'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Histórico de Registro */}
-                <div className="md:col-span-2 border-t border-slate-100 pt-6">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1 mb-3">Histórico de Registro</p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1 px-1">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Criado em</p>
-                      <div className="flex items-center gap-2 text-slate-700">
-                        <span className="font-semibold">{selectedAprovacao.data_inserida ? new Date(selectedAprovacao.data_inserida).toLocaleString('pt-BR') : 'N/A'}</span>
-                      </div>
-                    </div>
-                    <div className="space-y-1 px-1">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Última Modificação</p>
-                      <div className="flex items-center gap-2 text-slate-700">
-                        <span className="font-semibold">{selectedAprovacao.data_modificacao ? new Date(selectedAprovacao.data_modificacao).toLocaleString('pt-BR') : 'N/A'}</span>
-                      </div>
-                    </div>
-                  </div>
+              <div className="md:col-span-2 space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Motivo</label>
+                <Select 
+                  required
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                  value={formData.motivo} 
+                  onChange={(e) => setFormData({...formData, motivo: e.target.value})}
+                >
+                  <option value="" disabled>Selecione o motivo</option>
+                  <option value="Atividade complexa">Atividade complexa</option>
+                  <option value="Falta de controle">Falta de controle</option>
+                  <option value="Atividade injetada vencida">Atividade injetada vencida</option>
+                  <option value="Erro Sistemico">Erro Sistemico</option>
+                  <option value="Erro de Cadastro">Erro de Cadastro</option>
+                  <option value="Ordem Voltou para o Bucket">Roterizador moveu para o bucket</option>
+                </Select>
+              </div>
+              <div className="md:col-span-2 space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Observação (Opcional)</label>
+                <textarea 
+                  rows={2}
+                  maxLength={255}
+                  placeholder="Descreva brevemente detalhes relevantes da atividade..."
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all resize-none"
+                  value={formData.observacao} 
+                  onChange={(e) => setFormData({...formData, observacao: e.target.value})}
+                />
+                <div className="text-[10px] text-right text-slate-400 mt-1 mr-1 font-medium">
+                  {formData.observacao.length} / 255 caracteres
                 </div>
               </div>
             </div>
-
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+            <div className="flex gap-3 pt-4">
               <button 
-                onClick={closeDetailsModal}
-                className="px-6 py-2 bg-white border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-100 transition-all text-sm"
-              >
-                Fechar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de Confirmação de Reprovação */}
-      {isRejectModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-in zoom-in-95 duration-200 border border-slate-100">
-            <div className="flex flex-col items-center text-center">
-              <div className="w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-4 border border-red-100">
-                <AlertTriangle size={30} />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900">Confirmar Reprovação</h3>
-              <p className="text-sm text-slate-500 mt-2">
-                Tem certeza que deseja <span className="font-bold text-red-600">reprovar</span> esta atividade? Esta ação não poderá ser desfeita.
-              </p>
-            </div>
-            
-            <div className="flex gap-3 mt-8">
-              <button 
-                onClick={() => {
-                  setIsRejectModalOpen(false);
-                  setItemToReject(null);
-                }}
-                className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all text-sm"
+                type="button" onClick={closeModal}
+                className="flex-1 px-4 py-3 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all"
               >
                 Cancelar
               </button>
               <button 
-                onClick={() => {
-                  if(itemToReject) handleStatusUpdate(itemToReject, 'Reprovado');
-                  setIsRejectModalOpen(false);
-                  setItemToReject(null);
-                }}
-                className="flex-1 px-4 py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 shadow-lg shadow-red-100 transition-all text-sm"
+                type="submit"
+                disabled={isSaving}
+                className="flex-1 px-4 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all flex items-center justify-center gap-2 disabled:bg-indigo-300 disabled:shadow-none"
               >
-                Sim, Reprovar
+                {isSaving ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  'Salvar Atividade'
+                )}
               </button>
             </div>
-          </div>
-        </div>
+          </form>
+        </Modal>
       )}
 
-      {/* Sistema de Toast (Notificação) */}
-      {toast && (
-        <div className="fixed top-6 right-6 z-[100] animate-in fade-in slide-in-from-right-8 duration-300">
-          <div className={`flex items-center gap-3 px-5 py-4 rounded-2xl shadow-2xl border ${
-            toast.type === 'success' 
-              ? 'bg-white border-emerald-100 text-emerald-800' 
-              : 'bg-white border-red-100 text-red-800'
-          }`}>
-            {toast.type === 'success' ? (
-              <div className="bg-emerald-100 p-1 rounded-full text-emerald-600"><Check size={18} /></div>
-            ) : (
-              <div className="bg-red-100 p-1 rounded-full text-red-600"><AlertCircle size={18} /></div>
-            )}
-            <p className="text-sm font-bold">{toast.message}</p>
+      {/* Modal de Detalhes da Atividade */}
+      {isDetailsModalOpen && selectedAprovacao && (
+        <Modal onClose={closeDetailsModal} labelledBy="titulo-detalhes-atividade" className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+            <div>
+              <h3 id="titulo-detalhes-atividade" className="text-xl font-bold text-slate-800">Detalhes da Atividade</h3>
+              <p className="text-xs text-slate-500 font-mono mt-0.5">ID: #{selectedAprovacao.id}</p>
+            </div>
+            <button type="button" onClick={closeDetailsModal} aria-label="Fechar" className="text-slate-400 hover:text-slate-600 transition-colors p-1 hover:bg-white rounded-full">
+              <X size={24} />
+            </button>
           </div>
-        </div>
+          
+          <div className="p-6 overflow-y-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Status e PON */}
+              <div className="flex flex-col gap-4">
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status Atual</span>
+                  <div className={`mt-2 w-fit flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold ${getStatusStyle(selectedAprovacao.status)}`}>
+                    {getStatusIcon(selectedAprovacao.status)}
+                    {selectedAprovacao.status}
+                  </div>
+                </div>
+                
+                <div className="space-y-1 px-1">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Número PON</p>
+                  <p className="text-lg font-mono font-bold text-indigo-600">{selectedAprovacao.pon}</p>
+                </div>
+                
+                <div className="space-y-1 px-1">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Atividade (OS)</p>
+                  <p className="text-slate-700 font-medium">{selectedAprovacao.atividade}</p>
+                </div>
+
+                <div className="space-y-1 px-1">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Cidade</p>
+                  <p className="text-slate-700 font-medium">{selectedAprovacao.cidade}</p>
+                </div>
+                <div className="space-y-1 px-1">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Detalhe da Atividade</p>
+                  <p className="text-slate-700 font-medium">{selectedAprovacao.detalhe_atividade || 'Não informado'}</p>
+                </div>
+                <div className="space-y-1 px-1">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">UF</p>
+                  <p className="text-slate-700 font-medium">{selectedAprovacao.uf}</p>
+                </div>
+              </div>
+
+              {/* Datas e Slot */}
+              <div className="flex flex-col gap-4">
+                <div className="space-y-1 px-1">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Data de Execução</p>
+                  <div className="flex items-center gap-2 text-slate-700">
+                    <Clock size={16} className="text-slate-400" />
+                    <span className="font-semibold">{formatDate(selectedAprovacao.data_execucao)}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1 px-1">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Janela / Time Slot</p>
+                  <p className="text-slate-700">{selectedAprovacao.time_slot} <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded border ${selectedAprovacao.dentro_time_slot === 'Sim' ? 'text-emerald-600 border-emerald-100' : 'text-red-600 border-red-100'}`}>Slot: {selectedAprovacao.dentro_time_slot}</span></p>
+                </div>
+
+                <div className="space-y-1 px-1">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Motivo da Solicitação</p>
+                  <p className="text-slate-700">{selectedAprovacao.motivo}</p>
+                </div>
+              </div>
+
+              {/* Informações de Pessoal */}
+              <div className="md:col-span-2 border-t border-slate-100 pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-indigo-50/30 p-4 rounded-xl border border-indigo-100/50">
+                    <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-3">Solicitante</p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 text-sm font-bold">
+                        {getInitials(selectedAprovacao.nome_solicitante)}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-slate-800">{selectedAprovacao.nome_solicitante}</p>
+                        <p className="text-xs text-slate-500">{selectedAprovacao.empresa} • {selectedAprovacao.matricula_solicitante}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Técnico em Campo</p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center text-slate-500">
+                        <UserIcon size={20} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-slate-800">{selectedAprovacao.tecnico}</p>
+                        <p className="text-xs text-slate-500">Matrícula: {selectedAprovacao.matricula_tecnico}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Observações */}
+              <div className="md:col-span-2 space-y-2">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">Observações Adicionais</p>
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 min-h-[80px]">
+                  <p className="text-sm text-slate-600 italic">
+                    {selectedAprovacao.observacao || 'Nenhuma observação informada.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Histórico de Registro */}
+              <div className="md:col-span-2 border-t border-slate-100 pt-6">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1 mb-3">Histórico de Registro</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1 px-1">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Criado em</p>
+                    <div className="flex items-center gap-2 text-slate-700">
+                      <span className="font-semibold">{selectedAprovacao.data_inserida ? new Date(selectedAprovacao.data_inserida).toLocaleString('pt-BR') : 'N/A'}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-1 px-1">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Última Modificação</p>
+                    <div className="flex items-center gap-2 text-slate-700">
+                      <span className="font-semibold">{selectedAprovacao.data_modificacao ? new Date(selectedAprovacao.data_modificacao).toLocaleString('pt-BR') : 'N/A'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+            <button 
+              onClick={closeDetailsModal}
+              className="px-6 py-2 bg-white border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-100 transition-all text-sm"
+            >
+              Fechar
+            </button>
+          </div>
+        </Modal>
       )}
+
+      {/* Modal de Confirmação de Reprovação */}
+      {isRejectModalOpen && (
+        <Modal onClose={fecharReprovacao} labelledBy="titulo-confirmar-reprovacao" className="max-w-sm p-6 border border-slate-100" zIndex={60}>
+          <div className="flex flex-col items-center text-center">
+            <div className="w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-4 border border-red-100">
+              <AlertTriangle size={30} />
+            </div>
+            <h3 id="titulo-confirmar-reprovacao" className="text-lg font-bold text-slate-900">Confirmar Reprovação</h3>
+            <p className="text-sm text-slate-500 mt-2">
+              Tem certeza que deseja <span className="font-bold text-red-600">reprovar</span> esta atividade? Esta ação não poderá ser desfeita.
+            </p>
+          </div>
+          
+          <div className="flex gap-3 mt-8">
+            <button 
+              onClick={() => {
+                setIsRejectModalOpen(false);
+                setItemToReject(null);
+              }}
+              className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all text-sm"
+            >
+              Cancelar
+            </button>
+            <button 
+              onClick={() => {
+                if(itemToReject) handleStatusUpdate(itemToReject, 'Reprovado');
+                setIsRejectModalOpen(false);
+                setItemToReject(null);
+              }}
+              className="flex-1 px-4 py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 shadow-lg shadow-red-100 transition-all text-sm"
+            >
+              Sim, Reprovar
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      <Toast toast={toast} />
     </AppLayout>
   );
 };

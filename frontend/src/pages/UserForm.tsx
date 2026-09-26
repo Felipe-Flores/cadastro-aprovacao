@@ -1,6 +1,7 @@
 import React, { useEffect, useContext, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AppLayout } from '../components/AppLayout';
+import { Toast, type ToastData } from '../components/Toast';
 import { AuthContext } from '../contexts/AuthContext';
 import api from '../api/api';
 import {
@@ -12,8 +13,6 @@ import {
   Eye,
   EyeOff,
   Loader2,
-  Check,
-  AlertCircle,
 } from 'lucide-react';
 
 interface UserData {
@@ -60,7 +59,7 @@ export const UserForm: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [showSenha, setShowSenha] = useState(false);
   const [showConfirmarSenha, setShowConfirmarSenha] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [toast, setToast] = useState<ToastData | null>(null);
 
   useEffect(() => {
     if (user && user.cargo !== 'gestor-master') {
@@ -248,26 +247,7 @@ export const UserForm: React.FC = () => {
 
   return (
     <AppLayout title="Cadastro de Usuários" icon={UserPlus}>
-      {toast && (
-        <div
-          className={`fixed top-6 right-6 z-[100] flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl border animate-in slide-in-from-right-full duration-300 ${
-            toast.type === 'success'
-              ? 'bg-emerald-50 border-emerald-100 text-emerald-800'
-              : 'bg-red-50 border-red-100 text-red-800'
-          }`}
-        >
-          {toast.type === 'success' ? (
-            <div className="bg-emerald-100 p-1 rounded-full">
-              <Check size={16} className="text-emerald-600" />
-            </div>
-          ) : (
-            <div className="bg-red-100 p-1 rounded-full">
-              <AlertCircle size={16} className="text-red-600" />
-            </div>
-          )}
-          <span className="text-sm font-semibold tracking-tight">{toast.message}</span>
-        </div>
-      )}
+      <Toast toast={toast} />
         <div className="w-full max-w-5xl mx-auto flex flex-col md:flex-row bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_10px_20px_rgba(0,0,0,0.05)] border border-outline-variant">
           <div className="w-full md:w-5/12 bg-primary p-8 md:p-12 flex flex-col justify-between relative overflow-hidden text-on-primary">
             <div className="absolute top-0 right-0 w-64 h-64 bg-secondary-container opacity-20 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>

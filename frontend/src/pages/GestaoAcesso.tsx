@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useContext, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AppLayout } from '../components/AppLayout';
+import { Modal } from '../components/Modal';
+import { Toast, type ToastData } from '../components/Toast';
 import { AuthContext } from '../contexts/AuthContext';
 import api from '../api/api';
 import {
@@ -14,7 +16,6 @@ import {
   PauseCircle,
   X,
   ArrowUpDown,
-  Check,
   AlertCircle,
   Loader2,
   History,
@@ -209,7 +210,7 @@ export const GestaoAcesso: React.FC = () => {
   const [tratativa, setTratativa] = useState(TRATATIVA_VAZIA);
   const [isSavingTratativa, setIsSavingTratativa] = useState(false);
 
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [toast, setToast] = useState<ToastData | null>(null);
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
@@ -487,17 +488,6 @@ export const GestaoAcesso: React.FC = () => {
       setIsSaving(false);
     }
   };
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (selected) closeDetalhes();
-        if (formularioAberto && !isSaving) fecharFormulario();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selected, formularioAberto, isSaving, isSavingTratativa]);
 
   const handleSort = (key: keyof SolicitacaoAcesso) => {
     let direction: 'asc' | 'desc' = 'asc';
@@ -821,437 +811,417 @@ export const GestaoAcesso: React.FC = () => {
 
       {/* Modal de Solicitação de Acesso / Reset de Senha */}
       {formularioAberto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100">
-              <h3 className="text-xl font-bold text-slate-800">{TIPO_LABEL[formularioAberto]}</h3>
-              <button onClick={fecharFormulario} disabled={isSaving} className="text-slate-400 hover:text-slate-600 transition-colors">
-                <X size={24} />
+        <Modal onClose={() => { if (!isSaving) fecharFormulario(); }} labelledBy="titulo-formulario-acesso" className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100">
+            <h3 id="titulo-formulario-acesso" className="text-xl font-bold text-slate-800">{TIPO_LABEL[formularioAberto]}</h3>
+            <button type="button" onClick={fecharFormulario} disabled={isSaving} aria-label="Fechar" className="text-slate-400 hover:text-slate-600 transition-colors">
+              <X size={24} />
+            </button>
+          </div>
+
+          <form onSubmit={handleCriarSolicitacao} className="p-6 overflow-y-auto space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className={labelClass}>Estado</label>
+                <Select
+                  required
+                  className={`${inputClass}`}
+                  value={formData.estado}
+                  onChange={(e) => handleEstadoChange(e.target.value)}
+                >
+                  <option value="" disabled>Selecione o estado</option>
+                  {ESTADOS.map((uf) => (
+                    <option key={uf} value={uf}>{uf}</option>
+                  ))}
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <label className={labelClass}>Cidade</label>
+                <Select
+                  required
+                  disabled={!formData.estado}
+                  className={`${inputClass} disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed`}
+                  value={formData.cidade}
+                  onChange={(e) => setFormData({ ...formData, cidade: e.target.value })}
+                >
+                  <option value="" disabled>{formData.estado ? 'Selecione a cidade' : 'Escolha o estado primeiro'}</option>
+                  {(CIDADES_POR_ESTADO[formData.estado] ?? []).map((cidade) => (
+                    <option key={cidade} value={cidade}>{cidade}</option>
+                  ))}
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <label className={labelClass}>Matrícula do Técnico</label>
+                <input
+                  type="text" required maxLength={20} placeholder="A80xxxx"
+                  className={`${inputClass} uppercase`}
+                  value={formData.matricula}
+                  onChange={(e) => setFormData({ ...formData, matricula: e.target.value.toUpperCase().trimStart() })}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className={labelClass}>Empresa</label>
+                <input
+                  type="text" required maxLength={50} placeholder="Ex: TELEMONT"
+                  className={`${inputClass} uppercase`}
+                  value={formData.empresa}
+                  onChange={(e) => setFormData({ ...formData, empresa: e.target.value.toUpperCase().trimStart() })}
+                />
+              </div>
+              <div className="md:col-span-2 space-y-1">
+                <label className={labelClass}>Nome do Técnico</label>
+                <input
+                  type="text" required maxLength={100} placeholder="Nome completo do técnico"
+                  className={`${inputClass} uppercase`}
+                  value={formData.nome}
+                  onChange={(e) => setFormData({ ...formData, nome: e.target.value.toUpperCase() })}
+                />
+              </div>
+
+              {formularioAberto === 'acesso' && (
+                <>
+                  <div className="space-y-1">
+                    <label className={labelClass}>E-mail (Opcional)</label>
+                    <input
+                      type="email" maxLength={100} placeholder="nome@empresa.com.br"
+                      className={inputClass}
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value.trim() })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className={labelClass}>Telefone</label>
+                    <input
+                      type="text" inputMode="numeric" required maxLength={20} placeholder="Apenas números. Ex: 67999999999"
+                      className={inputClass}
+                      value={formData.telefone}
+                      onChange={(e) => setFormData({ ...formData, telefone: e.target.value.replace(/\D/g, '') })}
+                    />
+                  </div>
+                  <div className="md:col-span-2 space-y-1">
+                    <label className={labelClass}>Observação (Opcional)</label>
+                    <textarea
+                      rows={2}
+                      maxLength={150}
+                      placeholder="Informe os sistemas nos quais deseja acesso..."
+                      className={`${inputClass} resize-none`}
+                      value={formData.observacao}
+                      onChange={(e) => setFormData({ ...formData, observacao: e.target.value })}
+                    />
+                    <div className="text-[10px] text-right text-slate-400 mt-1 mr-1 font-medium">
+                      {formData.observacao.length} / 150 caracteres
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+            <div className="flex gap-3 pt-4">
+              <button
+                type="button" onClick={fecharFormulario} disabled={isSaving}
+                className="flex-1 px-4 py-3 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="flex-1 px-4 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all flex items-center justify-center gap-2 disabled:bg-indigo-300 disabled:shadow-none"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  'Enviar'
+                )}
               </button>
             </div>
-
-            <form onSubmit={handleCriarSolicitacao} className="p-6 overflow-y-auto space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className={labelClass}>Estado</label>
-                  <Select
-                    required
-                    className={`${inputClass}`}
-                    value={formData.estado}
-                    onChange={(e) => handleEstadoChange(e.target.value)}
-                  >
-                    <option value="" disabled>Selecione o estado</option>
-                    {ESTADOS.map((uf) => (
-                      <option key={uf} value={uf}>{uf}</option>
-                    ))}
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <label className={labelClass}>Cidade</label>
-                  <Select
-                    required
-                    disabled={!formData.estado}
-                    className={`${inputClass} disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed`}
-                    value={formData.cidade}
-                    onChange={(e) => setFormData({ ...formData, cidade: e.target.value })}
-                  >
-                    <option value="" disabled>{formData.estado ? 'Selecione a cidade' : 'Escolha o estado primeiro'}</option>
-                    {(CIDADES_POR_ESTADO[formData.estado] ?? []).map((cidade) => (
-                      <option key={cidade} value={cidade}>{cidade}</option>
-                    ))}
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <label className={labelClass}>Matrícula do Técnico</label>
-                  <input
-                    type="text" required maxLength={20} placeholder="A80xxxx"
-                    className={`${inputClass} uppercase`}
-                    value={formData.matricula}
-                    onChange={(e) => setFormData({ ...formData, matricula: e.target.value.toUpperCase().trimStart() })}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className={labelClass}>Empresa</label>
-                  <input
-                    type="text" required maxLength={50} placeholder="Ex: TELEMONT"
-                    className={`${inputClass} uppercase`}
-                    value={formData.empresa}
-                    onChange={(e) => setFormData({ ...formData, empresa: e.target.value.toUpperCase().trimStart() })}
-                  />
-                </div>
-                <div className="md:col-span-2 space-y-1">
-                  <label className={labelClass}>Nome do Técnico</label>
-                  <input
-                    type="text" required maxLength={100} placeholder="Nome completo do técnico"
-                    className={`${inputClass} uppercase`}
-                    value={formData.nome}
-                    onChange={(e) => setFormData({ ...formData, nome: e.target.value.toUpperCase() })}
-                  />
-                </div>
-
-                {formularioAberto === 'acesso' && (
-                  <>
-                    <div className="space-y-1">
-                      <label className={labelClass}>E-mail (Opcional)</label>
-                      <input
-                        type="email" maxLength={100} placeholder="nome@empresa.com.br"
-                        className={inputClass}
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value.trim() })}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className={labelClass}>Telefone</label>
-                      <input
-                        type="text" inputMode="numeric" required maxLength={20} placeholder="Apenas números. Ex: 67999999999"
-                        className={inputClass}
-                        value={formData.telefone}
-                        onChange={(e) => setFormData({ ...formData, telefone: e.target.value.replace(/\D/g, '') })}
-                      />
-                    </div>
-                    <div className="md:col-span-2 space-y-1">
-                      <label className={labelClass}>Observação (Opcional)</label>
-                      <textarea
-                        rows={2}
-                        maxLength={150}
-                        placeholder="Informe os sistemas nos quais deseja acesso..."
-                        className={`${inputClass} resize-none`}
-                        value={formData.observacao}
-                        onChange={(e) => setFormData({ ...formData, observacao: e.target.value })}
-                      />
-                      <div className="text-[10px] text-right text-slate-400 mt-1 mr-1 font-medium">
-                        {formData.observacao.length} / 150 caracteres
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button" onClick={fecharFormulario} disabled={isSaving}
-                  className="flex-1 px-4 py-3 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="flex-1 px-4 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all flex items-center justify-center gap-2 disabled:bg-indigo-300 disabled:shadow-none"
-                >
-                  {isSaving ? (
-                    <>
-                      <Loader2 size={18} className="animate-spin" />
-                      Enviando...
-                    </>
-                  ) : (
-                    'Enviar'
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+          </form>
+        </Modal>
       )}
 
       {/* Modal de Detalhes da Solicitação (tratativa editável para o Gestor Master) */}
       {selected && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-              <div>
-                <h3 className="text-xl font-bold text-slate-800">{TIPO_LABEL[selected.tipo]}</h3>
-                <p className="text-xs text-slate-500 font-mono mt-0.5">ID: #{formatId(selected.id)}</p>
-              </div>
-              <button onClick={closeDetalhes} className="text-slate-400 hover:text-slate-600 transition-colors p-1 hover:bg-white rounded-full">
-                <X size={24} />
-              </button>
+        <Modal onClose={closeDetalhes} labelledBy="titulo-detalhes-solicitacao" className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+            <div>
+              <h3 id="titulo-detalhes-solicitacao" className="text-xl font-bold text-slate-800">{TIPO_LABEL[selected.tipo]}</h3>
+              <p className="text-xs text-slate-500 font-mono mt-0.5">ID: #{formatId(selected.id)}</p>
             </div>
+            <button type="button" onClick={closeDetalhes} aria-label="Fechar" className="text-slate-400 hover:text-slate-600 transition-colors p-1 hover:bg-white rounded-full">
+              <X size={24} />
+            </button>
+          </div>
 
-            <div className="p-6 overflow-y-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Status */}
-                <div className="md:col-span-2 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status Atual</span>
-                  <div className={`mt-2 w-fit flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold ${getStatusStyle(selected.status)}`}>
-                    {getStatusIcon(selected.status)}
-                    {selected.status}
+          <div className="p-6 overflow-y-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Status */}
+              <div className="md:col-span-2 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status Atual</span>
+                <div className={`mt-2 w-fit flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold ${getStatusStyle(selected.status)}`}>
+                  {getStatusIcon(selected.status)}
+                  {selected.status}
+                </div>
+              </div>
+
+              {/* Dados informados: matrícula e nome são do técnico, não de quem abriu */}
+              <div className="space-y-1 px-1">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Nome do Técnico</p>
+                <p className="text-slate-700 font-medium">{selected.nome}</p>
+              </div>
+              <div className="space-y-1 px-1">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Matrícula do Técnico</p>
+                <p className="text-slate-700 font-medium">{selected.matricula}</p>
+              </div>
+              <div className="md:col-span-2 space-y-1 px-1">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Solicitado por</p>
+                <p className="text-slate-700 font-medium">{selected.nome_solicitante} ({selected.matricula_solicitante})</p>
+              </div>
+              <div className="space-y-1 px-1">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Empresa</p>
+                <p className="text-slate-700 font-medium">{selected.empresa}</p>
+              </div>
+              <div className="space-y-1 px-1">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Estado / Cidade</p>
+                <p className="text-slate-700 font-medium">{selected.estado} • {selected.cidade}</p>
+              </div>
+              {selected.tipo === 'acesso' && (
+                <>
+                  <div className="space-y-1 px-1">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">E-mail</p>
+                    <p className="text-slate-700 font-medium">{selected.email || 'Não informado'}</p>
                   </div>
-                </div>
-
-                {/* Dados informados: matrícula e nome são do técnico, não de quem abriu */}
-                <div className="space-y-1 px-1">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Nome do Técnico</p>
-                  <p className="text-slate-700 font-medium">{selected.nome}</p>
-                </div>
-                <div className="space-y-1 px-1">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Matrícula do Técnico</p>
-                  <p className="text-slate-700 font-medium">{selected.matricula}</p>
-                </div>
-                <div className="md:col-span-2 space-y-1 px-1">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Solicitado por</p>
-                  <p className="text-slate-700 font-medium">{selected.nome_solicitante} ({selected.matricula_solicitante})</p>
-                </div>
-                <div className="space-y-1 px-1">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Empresa</p>
-                  <p className="text-slate-700 font-medium">{selected.empresa}</p>
-                </div>
-                <div className="space-y-1 px-1">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Estado / Cidade</p>
-                  <p className="text-slate-700 font-medium">{selected.estado} • {selected.cidade}</p>
-                </div>
-                {selected.tipo === 'acesso' && (
-                  <>
-                    <div className="space-y-1 px-1">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">E-mail</p>
-                      <p className="text-slate-700 font-medium">{selected.email || 'Não informado'}</p>
-                    </div>
-                    <div className="space-y-1 px-1">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Telefone</p>
-                      <p className="text-slate-700 font-medium">{selected.telefone}</p>
-                    </div>
-                    <div className="md:col-span-2 space-y-2">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">Sistemas Solicitados</p>
-                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                        <p className="text-sm text-slate-600 italic">{selected.observacao || 'Nenhuma observação informada.'}</p>
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {/* Tratativa do Gestor Master (editável) */}
-                {podeTratar && selected.tipo === 'acesso' && (
-                  <div className="md:col-span-2 border-t border-slate-100 pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <p className="md:col-span-2 text-xs font-bold text-indigo-500 uppercase tracking-wider px-1 flex items-center gap-2">
-                      <ClipboardCheck size={14} />
-                      Tratativa
-                    </p>
-                    <div className="space-y-1">
-                      <label className={labelClass}>ID do Chamado</label>
-                      <input
-                        type="text" maxLength={50} placeholder="Nº do chamado aberto"
-                        className={inputClass}
-                        value={tratativa.id_chamado}
-                        onChange={(e) => setTratativa({ ...tratativa, id_chamado: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className={labelClass}>Responsável pela Aprovação</label>
-                      <input
-                        type="text" maxLength={100} placeholder="Nome de quem aprovou"
-                        className={`${inputClass} uppercase`}
-                        value={tratativa.responsavel_aprovacao}
-                        onChange={(e) => setTratativa({ ...tratativa, responsavel_aprovacao: e.target.value.toUpperCase() })}
-                      />
-                    </div>
-                    <div className="md:col-span-2 space-y-1">
-                      <label className={labelClass}>Sistemas / Solicitações</label>
-                      <TagInput
-                        value={tratativa.sistemas_tags}
-                        onChange={(tags) => setTratativa({ ...tratativa, sistemas_tags: tags })}
-                        placeholder="Digite e pressione Enter. Ex: Sistema: Portal de Material"
-                      />
-                    </div>
-                    <div className="md:col-span-2 space-y-1">
-                      <label className={labelClass}>Observação de Andamento (Opcional)</label>
-                      <textarea
-                        rows={2} maxLength={150}
-                        placeholder="Ex: aguardando liberação do Portal de Material para pedir o Toa Técnico"
-                        className={`${inputClass} resize-none`}
-                        value={tratativa.observacao_tratativa}
-                        onChange={(e) => setTratativa({ ...tratativa, observacao_tratativa: e.target.value })}
-                      />
-                      <div className="text-[10px] text-right text-slate-400 mr-1 font-medium">
-                        {tratativa.observacao_tratativa.length} / 150 caracteres
-                      </div>
-                    </div>
-                    <div className="md:col-span-2 space-y-1">
-                      <label className={labelClass}>Alterar Status</label>
-                      <Select
-                        className={`${inputClass}`}
-                        value={tratativa.status}
-                        onChange={(e) => setTratativa({ ...tratativa, status: e.target.value as typeof tratativa.status })}
-                      >
-                        <option value="">Manter como "{selected.status}"</option>
-                        {selected.status !== 'Pendente' && <option value="Pendente">Pendente (liberação parcial)</option>}
-                        <option value="Concluído">Concluído</option>
-                      </Select>
-                    </div>
-                    {tratativa.status === 'Concluído' && (
-                      <div className="md:col-span-2 space-y-1">
-                        <label className={labelClass}>Observação Final</label>
-                        <textarea
-                          rows={2} maxLength={150} required
-                          placeholder="Resumo final do que foi liberado"
-                          className={`${inputClass} resize-none`}
-                          value={tratativa.observacao_final}
-                          onChange={(e) => setTratativa({ ...tratativa, observacao_final: e.target.value })}
-                        />
-                        <div className="flex justify-between text-[10px] font-medium mx-1">
-                          <span className="text-amber-600">Após concluir, a solicitação não poderá ser reaberta.</span>
-                          <span className="text-slate-400">{tratativa.observacao_final.length} / 150 caracteres</span>
-                        </div>
-                      </div>
-                    )}
+                  <div className="space-y-1 px-1">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Telefone</p>
+                    <p className="text-slate-700 font-medium">{selected.telefone}</p>
                   </div>
-                )}
-
-                {podeTratar && selected.tipo === 'reset_senha' && (
-                  <div className="md:col-span-2 border-t border-slate-100 pt-6 space-y-4">
-                    <p className="text-xs font-bold text-indigo-500 uppercase tracking-wider px-1 flex items-center gap-2">
-                      <ClipboardCheck size={14} />
-                      Tratativa
-                    </p>
-                    <div className="flex items-start gap-2 bg-amber-50 border border-amber-100 text-amber-800 p-3 rounded-xl text-sm">
-                      <AlertCircle size={18} className="shrink-0 mt-0.5" />
-                      <p>O reset é realizado no sistema externo; registre aqui apenas o parecer.</p>
+                  <div className="md:col-span-2 space-y-2">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">Sistemas Solicitados</p>
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                      <p className="text-sm text-slate-600 italic">{selected.observacao || 'Nenhuma observação informada.'}</p>
                     </div>
-                    <div className="space-y-1">
-                      <label className={labelClass}>Parecer</label>
+                  </div>
+                </>
+              )}
+
+              {/* Tratativa do Gestor Master (editável) */}
+              {podeTratar && selected.tipo === 'acesso' && (
+                <div className="md:col-span-2 border-t border-slate-100 pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <p className="md:col-span-2 text-xs font-bold text-indigo-500 uppercase tracking-wider px-1 flex items-center gap-2">
+                    <ClipboardCheck size={14} />
+                    Tratativa
+                  </p>
+                  <div className="space-y-1">
+                    <label className={labelClass}>ID do Chamado</label>
+                    <input
+                      type="text" maxLength={50} placeholder="Nº do chamado aberto"
+                      className={inputClass}
+                      value={tratativa.id_chamado}
+                      onChange={(e) => setTratativa({ ...tratativa, id_chamado: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className={labelClass}>Responsável pela Aprovação</label>
+                    <input
+                      type="text" maxLength={100} placeholder="Nome de quem aprovou"
+                      className={`${inputClass} uppercase`}
+                      value={tratativa.responsavel_aprovacao}
+                      onChange={(e) => setTratativa({ ...tratativa, responsavel_aprovacao: e.target.value.toUpperCase() })}
+                    />
+                  </div>
+                  <div className="md:col-span-2 space-y-1">
+                    <label className={labelClass}>Sistemas / Solicitações</label>
+                    <TagInput
+                      value={tratativa.sistemas_tags}
+                      onChange={(tags) => setTratativa({ ...tratativa, sistemas_tags: tags })}
+                      placeholder="Digite e pressione Enter. Ex: Sistema: Portal de Material"
+                    />
+                  </div>
+                  <div className="md:col-span-2 space-y-1">
+                    <label className={labelClass}>Observação de Andamento (Opcional)</label>
+                    <textarea
+                      rows={2} maxLength={150}
+                      placeholder="Ex: aguardando liberação do Portal de Material para pedir o Toa Técnico"
+                      className={`${inputClass} resize-none`}
+                      value={tratativa.observacao_tratativa}
+                      onChange={(e) => setTratativa({ ...tratativa, observacao_tratativa: e.target.value })}
+                    />
+                    <div className="text-[10px] text-right text-slate-400 mr-1 font-medium">
+                      {tratativa.observacao_tratativa.length} / 150 caracteres
+                    </div>
+                  </div>
+                  <div className="md:col-span-2 space-y-1">
+                    <label className={labelClass}>Alterar Status</label>
+                    <Select
+                      className={`${inputClass}`}
+                      value={tratativa.status}
+                      onChange={(e) => setTratativa({ ...tratativa, status: e.target.value as typeof tratativa.status })}
+                    >
+                      <option value="">Manter como "{selected.status}"</option>
+                      {selected.status !== 'Pendente' && <option value="Pendente">Pendente (liberação parcial)</option>}
+                      <option value="Concluído">Concluído</option>
+                    </Select>
+                  </div>
+                  {tratativa.status === 'Concluído' && (
+                    <div className="md:col-span-2 space-y-1">
+                      <label className={labelClass}>Observação Final</label>
                       <textarea
-                        rows={3} maxLength={150}
-                        placeholder="Descreva o que foi feito no sistema externo"
+                        rows={2} maxLength={150} required
+                        placeholder="Resumo final do que foi liberado"
                         className={`${inputClass} resize-none`}
-                        value={tratativa.observacao_tratativa}
-                        onChange={(e) => setTratativa({ ...tratativa, observacao_tratativa: e.target.value })}
+                        value={tratativa.observacao_final}
+                        onChange={(e) => setTratativa({ ...tratativa, observacao_final: e.target.value })}
                       />
                       <div className="flex justify-between text-[10px] font-medium mx-1">
                         <span className="text-amber-600">Após concluir, a solicitação não poderá ser reaberta.</span>
-                        <span className="text-slate-400">{tratativa.observacao_tratativa.length} / 150 caracteres</span>
+                        <span className="text-slate-400">{tratativa.observacao_final.length} / 150 caracteres</span>
                       </div>
                     </div>
-                  </div>
-                )}
-
-                {/* Tratativa do Gestor Master (somente leitura) */}
-                {!podeTratar && (selected.id_chamado ||selected.responsavel_aprovacao || selected.sistemas_tags?.length || selected.observacao_tratativa || selected.observacao_final) && (
-                  <div className="md:col-span-2 border-t border-slate-100 pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <p className="md:col-span-2 text-xs font-bold text-slate-400 uppercase tracking-wider px-1">Tratativa</p>
-                    {selected.id_chamado && (
-                      <div className="space-y-1 px-1">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">ID do Chamado</p>
-                        <p className="text-slate-700 font-mono font-bold">{selected.id_chamado}</p>
-                      </div>
-                    )}
-                    {selected.responsavel_aprovacao && (
-                      <div className="space-y-1 px-1">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Responsável pela Aprovação</p>
-                        <p className="text-slate-700 font-medium">{selected.responsavel_aprovacao}</p>
-                      </div>
-                    )}
-                    {!!selected.sistemas_tags?.length && (
-                      <div className="md:col-span-2 flex flex-wrap gap-2 px-1">
-                        {selected.sistemas_tags.map((tag) => (
-                          <span key={tag} className="flex items-center gap-1 px-3 py-1 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full text-xs font-bold">
-                            <Tag size={12} />
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    {selected.observacao_tratativa && (
-                      <div className="md:col-span-2 space-y-1 px-1">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{selected.tipo === 'reset_senha' ? 'Parecer' : 'Observação'}</p>
-                        <p className="text-sm text-slate-600">{selected.observacao_tratativa}</p>
-                      </div>
-                    )}
-                    {selected.observacao_final && (
-                      <div className="md:col-span-2 space-y-1 px-1">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Observação Final</p>
-                        <p className="text-sm text-slate-600">{selected.observacao_final}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Histórico da Solicitação */}
-                <div className="md:col-span-2 border-t border-slate-100 pt-6">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1 mb-3 flex items-center gap-2">
-                    <History size={14} />
-                    Histórico
-                  </p>
-                  {loadingDetalhe ? (
-                    <div className="flex items-center gap-2 text-sm text-slate-400 px-1">
-                      <Loader2 size={16} className="animate-spin" />
-                      Carregando histórico...
-                    </div>
-                  ) : !selected.historico?.length ? (
-                    <p className="text-sm text-slate-400 italic px-1">Nenhum registro de histórico.</p>
-                  ) : (
-                    <ol className="relative border-l border-slate-200 ml-2 space-y-5">
-                      {selected.historico.map((h) => (
-                        <li key={h.id} className="ml-5">
-                          <span className="absolute -left-1.5 mt-1.5 w-3 h-3 rounded-full bg-indigo-500 border-2 border-white"></span>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-sm font-bold text-slate-800">{h.acao}</p>
-                            {h.status_anterior && h.status_anterior !== h.status_novo && (
-                              <span className="text-[10px] font-bold text-slate-500 uppercase">
-                                {h.status_anterior} → {h.status_novo}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-slate-500 mt-0.5">
-                            {formatDateTime(h.data)} • {h.nome_usuario} ({h.matricula_usuario})
-                          </p>
-                          {h.descricao && <p className="text-sm text-slate-600 mt-1">{h.descricao}</p>}
-                        </li>
-                      ))}
-                    </ol>
                   )}
                 </div>
+              )}
+
+              {podeTratar && selected.tipo === 'reset_senha' && (
+                <div className="md:col-span-2 border-t border-slate-100 pt-6 space-y-4">
+                  <p className="text-xs font-bold text-indigo-500 uppercase tracking-wider px-1 flex items-center gap-2">
+                    <ClipboardCheck size={14} />
+                    Tratativa
+                  </p>
+                  <div className="flex items-start gap-2 bg-amber-50 border border-amber-100 text-amber-800 p-3 rounded-xl text-sm">
+                    <AlertCircle size={18} className="shrink-0 mt-0.5" />
+                    <p>O reset é realizado no sistema externo; registre aqui apenas o parecer.</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className={labelClass}>Parecer</label>
+                    <textarea
+                      rows={3} maxLength={150}
+                      placeholder="Descreva o que foi feito no sistema externo"
+                      className={`${inputClass} resize-none`}
+                      value={tratativa.observacao_tratativa}
+                      onChange={(e) => setTratativa({ ...tratativa, observacao_tratativa: e.target.value })}
+                    />
+                    <div className="flex justify-between text-[10px] font-medium mx-1">
+                      <span className="text-amber-600">Após concluir, a solicitação não poderá ser reaberta.</span>
+                      <span className="text-slate-400">{tratativa.observacao_tratativa.length} / 150 caracteres</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Tratativa do Gestor Master (somente leitura) */}
+              {!podeTratar && (selected.id_chamado ||selected.responsavel_aprovacao || selected.sistemas_tags?.length || selected.observacao_tratativa || selected.observacao_final) && (
+                <div className="md:col-span-2 border-t border-slate-100 pt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <p className="md:col-span-2 text-xs font-bold text-slate-400 uppercase tracking-wider px-1">Tratativa</p>
+                  {selected.id_chamado && (
+                    <div className="space-y-1 px-1">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">ID do Chamado</p>
+                      <p className="text-slate-700 font-mono font-bold">{selected.id_chamado}</p>
+                    </div>
+                  )}
+                  {selected.responsavel_aprovacao && (
+                    <div className="space-y-1 px-1">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Responsável pela Aprovação</p>
+                      <p className="text-slate-700 font-medium">{selected.responsavel_aprovacao}</p>
+                    </div>
+                  )}
+                  {!!selected.sistemas_tags?.length && (
+                    <div className="md:col-span-2 flex flex-wrap gap-2 px-1">
+                      {selected.sistemas_tags.map((tag) => (
+                        <span key={tag} className="flex items-center gap-1 px-3 py-1 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full text-xs font-bold">
+                          <Tag size={12} />
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {selected.observacao_tratativa && (
+                    <div className="md:col-span-2 space-y-1 px-1">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{selected.tipo === 'reset_senha' ? 'Parecer' : 'Observação'}</p>
+                      <p className="text-sm text-slate-600">{selected.observacao_tratativa}</p>
+                    </div>
+                  )}
+                  {selected.observacao_final && (
+                    <div className="md:col-span-2 space-y-1 px-1">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Observação Final</p>
+                      <p className="text-sm text-slate-600">{selected.observacao_final}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Histórico da Solicitação */}
+              <div className="md:col-span-2 border-t border-slate-100 pt-6">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1 mb-3 flex items-center gap-2">
+                  <History size={14} />
+                  Histórico
+                </p>
+                {loadingDetalhe ? (
+                  <div className="flex items-center gap-2 text-sm text-slate-400 px-1">
+                    <Loader2 size={16} className="animate-spin" />
+                    Carregando histórico...
+                  </div>
+                ) : !selected.historico?.length ? (
+                  <p className="text-sm text-slate-400 italic px-1">Nenhum registro de histórico.</p>
+                ) : (
+                  <ol className="relative border-l border-slate-200 ml-2 space-y-5">
+                    {selected.historico.map((h) => (
+                      <li key={h.id} className="ml-5">
+                        <span className="absolute -left-1.5 mt-1.5 w-3 h-3 rounded-full bg-indigo-500 border-2 border-white"></span>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-bold text-slate-800">{h.acao}</p>
+                          {h.status_anterior && h.status_anterior !== h.status_novo && (
+                            <span className="text-[10px] font-bold text-slate-500 uppercase">
+                              {h.status_anterior} → {h.status_novo}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          {formatDateTime(h.data)} • {h.nome_usuario} ({h.matricula_usuario})
+                        </p>
+                        {h.descricao && <p className="text-sm text-slate-600 mt-1">{h.descricao}</p>}
+                      </li>
+                    ))}
+                  </ol>
+                )}
               </div>
             </div>
+          </div>
 
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+          <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+            <button
+              onClick={closeDetalhes}
+              disabled={isSavingTratativa}
+              className="px-6 py-2 bg-white border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-100 transition-all text-sm"
+            >
+              Fechar
+            </button>
+            {podeTratar && (
               <button
-                onClick={closeDetalhes}
+                onClick={() => handleSalvarTratativa(selected.tipo === 'reset_senha')}
                 disabled={isSavingTratativa}
-                className="px-6 py-2 bg-white border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-100 transition-all text-sm"
+                className="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all text-sm flex items-center gap-2 disabled:bg-indigo-300 disabled:shadow-none"
               >
-                Fechar
+                {isSavingTratativa ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Salvando...
+                  </>
+                ) : selected.tipo === 'reset_senha' || tratativa.status === 'Concluído' ? (
+                  <>
+                    <CheckCircle2 size={16} />
+                    Concluir
+                  </>
+                ) : (
+                  'Salvar'
+                )}
               </button>
-              {podeTratar && (
-                <button
-                  onClick={() => handleSalvarTratativa(selected.tipo === 'reset_senha')}
-                  disabled={isSavingTratativa}
-                  className="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all text-sm flex items-center gap-2 disabled:bg-indigo-300 disabled:shadow-none"
-                >
-                  {isSavingTratativa ? (
-                    <>
-                      <Loader2 size={16} className="animate-spin" />
-                      Salvando...
-                    </>
-                  ) : selected.tipo === 'reset_senha' || tratativa.status === 'Concluído' ? (
-                    <>
-                      <CheckCircle2 size={16} />
-                      Concluir
-                    </>
-                  ) : (
-                    'Salvar'
-                  )}
-                </button>
-              )}
-            </div>
+            )}
           </div>
-        </div>
+        </Modal>
       )}
 
-      {/* Sistema de Toast (Notificação) */}
-      {toast && (
-        <div className="fixed top-6 right-6 z-[100] animate-in fade-in slide-in-from-right-8 duration-300">
-          <div className={`flex items-center gap-3 px-5 py-4 rounded-2xl shadow-2xl border ${
-            toast.type === 'success'
-              ? 'bg-white border-emerald-100 text-emerald-800'
-              : 'bg-white border-red-100 text-red-800'
-          }`}>
-            {toast.type === 'success' ? (
-              <div className="bg-emerald-100 p-1 rounded-full text-emerald-600"><Check size={18} /></div>
-            ) : (
-              <div className="bg-red-100 p-1 rounded-full text-red-600"><AlertCircle size={18} /></div>
-            )}
-            <p className="text-sm font-bold">{toast.message}</p>
-          </div>
-        </div>
-      )}
+      <Toast toast={toast} />
     </AppLayout>
   );
 };
