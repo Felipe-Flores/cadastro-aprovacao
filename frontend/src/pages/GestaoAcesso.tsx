@@ -5,7 +5,7 @@ import { Modal } from '../components/Modal';
 import { SortableHeader } from '../components/SortableHeader';
 import { Toast, useToast } from '../components/Toast';
 import { AuthContext } from '../contexts/AuthContext';
-import api from '../api/api';
+import api, { agoraServidor } from '../api/api';
 import {
   KeyRound,
   UserPlus,
@@ -130,11 +130,11 @@ const formatDuracao = (ms: number) => {
 // Tempo desde a abertura: fixo até a conclusão ou contando enquanto em aberto
 const DuracaoSolicitacao: React.FC<{ item: SolicitacaoAcesso }> = ({ item }) => {
   const emAberto = !item.data_conclusao;
-  const [agora, setAgora] = useState(() => Date.now());
+  const [agora, setAgora] = useState(agoraServidor);
 
   useEffect(() => {
     if (!emAberto) return;
-    const timer = setInterval(() => setAgora(Date.now()), 30000);
+    const timer = setInterval(() => setAgora(agoraServidor()), 30000);
     return () => clearInterval(timer);
   }, [emAberto]);
 

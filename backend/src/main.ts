@@ -9,7 +9,8 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe()); 
   
   // Permite que o Frontend (Vite) acesse esta API
-  app.enableCors(); 
+  // Expõe o cabeçalho Date para o front sincronizar o relógio com o servidor
+  app.enableCors({ exposedHeaders: ['Date'] });
 
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
   console.log(`O servidor está rodando em: http://localhost:${process.env.PORT ?? 3000}`);
