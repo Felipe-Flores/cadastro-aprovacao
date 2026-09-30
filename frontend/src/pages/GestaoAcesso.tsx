@@ -117,10 +117,48 @@ interface Coluna {
   render: (item: SolicitacaoAcesso) => React.ReactNode;
 }
 
+const formatDuracao = (ms: number) => {
+  const totalMin = Math.max(0, Math.floor(ms / 60000));
+  const dias = Math.floor(totalMin / 1440);
+  const horas = Math.floor((totalMin % 1440) / 60);
+  const minutos = totalMin % 60;
+  if (dias > 0) return `${dias}d ${horas}h`;
+  if (horas > 0) return `${horas}h ${minutos}m`;
+  return `${minutos}m`;
+};
+
+// Tempo desde a abertura: fixo até a conclusão ou contando enquanto em aberto
+const DuracaoSolicitacao: React.FC<{ item: SolicitacaoAcesso }> = ({ item }) => {
+  const emAberto = !item.data_conclusao;
+  const [agora, setAgora] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (!emAberto) return;
+    const timer = setInterval(() => setAgora(Date.now()), 30000);
+    return () => clearInterval(timer);
+  }, [emAberto]);
+
+  const inicio = new Date(item.data_criacao).getTime();
+  const fim = emAberto ? agora : new Date(item.data_conclusao as string).getTime();
+
+  return (
+    <span
+      title={emAberto ? 'Tempo em aberto' : 'Duração total'}
+      className={`flex items-center gap-1 text-xs font-semibold whitespace-nowrap ${emAberto ? 'text-slate-500' : 'text-emerald-700'}`}
+    >
+      <Clock size={14} />
+      {formatDuracao(fim - inicio)}
+    </span>
+  );
+};
+
 const renderStatus = (item: SolicitacaoAcesso) => (
-  <div className={`mx-auto w-fit flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold whitespace-nowrap ${getStatusStyle(item.status)}`}>
-    {getStatusIcon(item.status)}
-    {item.status}
+  <div className="flex items-center justify-center gap-2">
+    <div className={`w-fit flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold whitespace-nowrap ${getStatusStyle(item.status)}`}>
+      {getStatusIcon(item.status)}
+      {item.status}
+    </div>
+    <DuracaoSolicitacao item={item} />
   </div>
 );
 
@@ -960,9 +998,12 @@ export const GestaoAcesso: React.FC = () => {
               {/* Status */}
               <div className="md:col-span-2 bg-slate-50 p-4 rounded-xl border border-slate-100">
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Status Atual</span>
-                <div className={`mt-2 w-fit flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold ${getStatusStyle(selected.status)}`}>
-                  {getStatusIcon(selected.status)}
-                  {selected.status}
+                <div className="mt-2 flex items-center gap-2">
+                  <div className={`w-fit flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold ${getStatusStyle(selected.status)}`}>
+                    {getStatusIcon(selected.status)}
+                    {selected.status}
+                  </div>
+                  <DuracaoSolicitacao item={selected} />
                 </div>
               </div>
 
